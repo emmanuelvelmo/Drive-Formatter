@@ -30,6 +30,9 @@
     <ClInclude Include="..\..\Downloads\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="USB Drive Formatter.cpp">
@@ -40,13 +43,5 @@
     <ResourceCompile Include="USB Drive Formatter.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="USB Drive Formatter.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
   </ItemGroup>
 </Project>
