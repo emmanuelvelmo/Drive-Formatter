@@ -27,6 +27,9 @@
     <ClInclude Include="USB Drive Formatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Downloads\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="USB Drive Formatter.cpp">
