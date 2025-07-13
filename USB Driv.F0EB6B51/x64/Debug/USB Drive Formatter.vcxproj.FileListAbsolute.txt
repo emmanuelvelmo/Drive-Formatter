@@ -1,0 +1,3 @@
+C:\Users\-\Desktop\USB Drive Formatter\USB Driv.F0EB6B51\x64\Debug\USB Drive Formatter.vcxproj.AssemblyReference.cache
+C:\Users\-\Desktop\USB Drive Formatter\USB Driv.F0EB6B51\x64\Debug\USBDriveFormatter.ventana_principal.resources
+C:\Users\-\Desktop\USB Drive Formatter\USB Driv.F0EB6B51\x64\Debug\USB Drive Formatter.vcxproj.GenerateResource.cache

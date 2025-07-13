@@ -97,6 +97,7 @@ namespace USBDriveFormatter {
 			// 
 			// tableLayoutPanel1
 			// 
+			this->tableLayoutPanel1->BackColor = System::Drawing::SystemColors::ButtonHighlight;
 			this->tableLayoutPanel1->ColumnCount = 16;
 			this->tableLayoutPanel1->ColumnStyles->Add((gcnew System::Windows::Forms::ColumnStyle(System::Windows::Forms::SizeType::Percent,
 				50)));
