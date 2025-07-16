@@ -1,4 +1,4 @@
-# USB Drive Formatter
+# Drive Formatter
 <p align="left">
   <strong>-</strong>
   <br/>
