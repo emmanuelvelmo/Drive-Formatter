@@ -1,25 +1,20 @@
 #include "ventana_principal.h"
+#include <windows.h> // Necesario para HINSTANCE, LPSTR, etc.
 
-// Atributo esencial para aplicaciones Windows Forms que usa COM (Component Object Model)
-// STA (Single Threaded Apartment) garantiza que los componentes COM se ejecuten en un entorno seguro para hilos
-[System::STAThreadAttribute]
+using namespace System;
+using namespace System::Windows::Forms;
 
-// Punto de entrada principal de la aplicación
-// args: Argumentos pasados al programa desde la línea de comandos
-int main(array<System::String^>^ args)
+// El atributo STAThread debe estar antes de la declaración de WinMain
+[STAThread]
+
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    // Habilita los estilos visuales de Windows XP/Vista/7/etc. para los controles de la interfaz
-    System::Windows::Forms::Application::EnableVisualStyles();
+    Application::EnableVisualStyles();
+    Application::SetCompatibleTextRenderingDefault(false);
 
-    // Configura el modo de renderizado de texto compatible con versiones anteriores
-    System::Windows::Forms::Application::SetCompatibleTextRenderingDefault(false);
-
-    // Crea una instancia del formulario principal (ventana_principal)
-    USBDriveFormatter::ventana_principal form;
-
-    // Ejecuta el bucle de mensajes de la aplicación con el formulario principal
-    // % es el operador de direccionamiento en C++/CLI que obtiene la dirección administrada
-    System::Windows::Forms::Application::Run(% form);
+    // Crear y ejecutar el formulario principal
+    DriveFormatter::ventana_principal^ form = gcnew DriveFormatter::ventana_principal();
+    Application::Run(form);
 
     return 0;
 }

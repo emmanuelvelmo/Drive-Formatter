@@ -1,0 +1,3 @@
+C:\Users\-\Desktop\Drive Formatter\Drive Formatter\x64\Debug\Drive Formatter.vcxproj.AssemblyReference.cache
+C:\Users\-\Desktop\Drive Formatter\Drive Formatter\x64\Debug\DriveFormatter.ventana_principal.resources
+C:\Users\-\Desktop\Drive Formatter\Drive Formatter\x64\Debug\Drive Formatter.vcxproj.GenerateResource.cache
