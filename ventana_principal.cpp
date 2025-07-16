@@ -8,12 +8,25 @@ using namespace System;
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    //
     System::Windows::Forms::Application::EnableVisualStyles();
+    //
     System::Windows::Forms::Application::SetCompatibleTextRenderingDefault(false);
 
     // Crear y ejecutar el formulario principal
     DriveFormatter::ventana_principal^ form = gcnew DriveFormatter::ventana_principal();
+    //
     System::Windows::Forms::Application::Run(form);
+
+
+
+
+
+
+
+
+
+
 
     return 0;
 }
