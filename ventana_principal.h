@@ -3,33 +3,33 @@ namespace DriveFormatter
 {
     public ref class ventana_principal : public System::Windows::Forms::Form
     {
-    public:
-        ventana_principal(void)
-        {
-            InitializeComponent();
-        }
-    protected:
-        ~ventana_principal()
-        {
-            if (components)
+        public:
+            ventana_principal(void)
             {
-                delete components;
+                InitializeComponent();
             }
-        }
-    private: System::Windows::Forms::Label^ label1;
-    private: System::Windows::Forms::ComboBox^ comboBox1;
-    private: System::Windows::Forms::Button^ button1;
-    private: System::Windows::Forms::ProgressBar^ progressBar1;
-    private: System::Windows::Forms::TextBox^ textBox1;
-    private: System::Windows::Forms::VScrollBar^ vScrollBar1;
+        protected:
+            ~ventana_principal()
+            {
+                if (components)
+                {
+                    delete components;
+                }
+            }
+        private: System::Windows::Forms::Label^ label1;
+        private: System::Windows::Forms::ComboBox^ comboBox1;
+        private: System::Windows::Forms::Button^ button1;
+        private: System::Windows::Forms::ProgressBar^ progressBar1;
+        private: System::Windows::Forms::TextBox^ textBox1;
+        private: System::Windows::Forms::VScrollBar^ vScrollBar1;
 
-    protected:
+        protected:
 
-    protected:
-    protected:
-    private:
-        System::ComponentModel::Container^ components;
-#pragma region Windows Form Designer generated code
+        protected:
+        protected:
+        private:
+            System::ComponentModel::Container^ components;
+        #pragma region Windows Form Designer generated code
         void InitializeComponent(void)
         {
             this->label1 = (gcnew System::Windows::Forms::Label());
@@ -106,6 +106,6 @@ namespace DriveFormatter
             this->PerformLayout();
 
         }
-#pragma endregion
+        #pragma endregion
     };
 }
