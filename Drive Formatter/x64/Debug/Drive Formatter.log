@@ -1,3 +1,9 @@
 ﻿  ventana_principal.cpp
-  ventana_principal.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
-  Drive Formatter.vcxproj -> C:\Users\-\Desktop\Drive Formatter\x64\Debug\Drive Formatter.exe
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(121,32): error C2065: 'PBM_SETRANGE32': undeclared identifier
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(122,32): error C2065: 'PBM_SETPOS': undeclared identifier
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(212,34): warning C4838: conversion from 'char' to 'TCHAR' requires a narrowing conversion
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(222,19): warning C4244: 'initializing': conversion from 'LRESULT' to 'int', possible loss of data
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(279,28): error C2446: '==': no conversion from 'HWND' to 'int'
+      C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(279,31):
+      There is no context in which this conversion is possible
+  

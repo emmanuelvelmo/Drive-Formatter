@@ -7,7 +7,12 @@ namespace DriveFormatter
             ventana_principal(void)
             {
                 InitializeComponent();
+
+                // Deshabilitar redimensionamiento y botón de maximizar
+                this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
+                this->MaximizeBox = false;
             }
+
         protected:
             ~ventana_principal()
             {
@@ -16,6 +21,7 @@ namespace DriveFormatter
                     delete components;
                 }
             }
+
         private: System::Windows::Forms::Label^ label1;
         private: System::Windows::Forms::ComboBox^ comboBox1;
         private: System::Windows::Forms::Button^ button1;
@@ -24,11 +30,12 @@ namespace DriveFormatter
         private: System::Windows::Forms::VScrollBar^ vScrollBar1;
 
         protected:
+        protected:
+        protected:
 
-        protected:
-        protected:
         private:
             System::ComponentModel::Container^ components;
+
         #pragma region Windows Form Designer generated code
         void InitializeComponent(void)
         {
@@ -104,7 +111,6 @@ namespace DriveFormatter
             this->Text = L"Drive Formatter";
             this->ResumeLayout(false);
             this->PerformLayout();
-
         }
         #pragma endregion
     };
