@@ -1,8 +1,18 @@
 #pragma once
+#include <windows.h>
+
+// Declaraciones externas
+extern void directorios_unidades();
+extern void formatear_unidad();
+extern void cambiar_unidad();
+
+//
 namespace DriveFormatter
 {
+    //
     public ref class ventana_principal : public System::Windows::Forms::Form
     {
+        //
         public:
             ventana_principal(void)
             {
@@ -11,8 +21,15 @@ namespace DriveFormatter
                 // Deshabilitar redimensionamiento y botón de maximizar
                 this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
                 this->MaximizeBox = false;
+
+                // Activar eventos
+                this->KeyPreview = true;
+                this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &ventana_principal::ventana_principal_KeyDown);
+                this->button1->Click += gcnew System::EventHandler(this, &ventana_principal::button1_Click);
+                this->combobox1->SelectedIndexChanged += gcnew System::EventHandler(this, &ventana_principal::combobox1_SelectedIndexChanged);
             }
 
+        //
         protected:
             ~ventana_principal()
             {
@@ -21,26 +38,23 @@ namespace DriveFormatter
                     delete components;
                 }
             }
-
-        private: System::Windows::Forms::Label^ label1;
-        private: System::Windows::Forms::ComboBox^ comboBox1;
-        private: System::Windows::Forms::Button^ button1;
-        private: System::Windows::Forms::ProgressBar^ progressBar1;
-        private: System::Windows::Forms::TextBox^ textBox1;
-        private: System::Windows::Forms::VScrollBar^ vScrollBar1;
-
-        protected:
-        protected:
-        protected:
-
+        
+        //
         private:
+            System::Windows::Forms::Label^ label1;
+            System::Windows::Forms::ComboBox^ combobox1;
+            System::Windows::Forms::Button^ button1;
+            System::Windows::Forms::ProgressBar^ progressBar1;
+            System::Windows::Forms::TextBox^ textBox1;
+            System::Windows::Forms::VScrollBar^ vScrollBar1;
             System::ComponentModel::Container^ components;
 
         #pragma region Windows Form Designer generated code
+        //
         void InitializeComponent(void)
         {
             this->label1 = (gcnew System::Windows::Forms::Label());
-            this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
+            this->combobox1 = (gcnew System::Windows::Forms::ComboBox());
             this->button1 = (gcnew System::Windows::Forms::Button());
             this->progressBar1 = (gcnew System::Windows::Forms::ProgressBar());
             this->textBox1 = (gcnew System::Windows::Forms::TextBox());
@@ -56,13 +70,13 @@ namespace DriveFormatter
             this->label1->TabIndex = 0;
             this->label1->Text = L"Select Device:";
             // 
-            // comboBox1
+            // combobox1
             // 
-            this->comboBox1->FormattingEnabled = true;
-            this->comboBox1->Location = System::Drawing::Point(15, 29);
-            this->comboBox1->Name = L"comboBox1";
-            this->comboBox1->Size = System::Drawing::Size(244, 21);
-            this->comboBox1->TabIndex = 1;
+            this->combobox1->FormattingEnabled = true;
+            this->combobox1->Location = System::Drawing::Point(15, 29);
+            this->combobox1->Name = L"combobox1";
+            this->combobox1->Size = System::Drawing::Size(244, 21);
+            this->combobox1->TabIndex = 1;
             // 
             // button1
             // 
@@ -105,7 +119,7 @@ namespace DriveFormatter
             this->Controls->Add(this->textBox1);
             this->Controls->Add(this->progressBar1);
             this->Controls->Add(this->button1);
-            this->Controls->Add(this->comboBox1);
+            this->Controls->Add(this->combobox1);
             this->Controls->Add(this->label1);
             this->Name = L"ventana_principal";
             this->Text = L"Drive Formatter";
@@ -113,5 +127,27 @@ namespace DriveFormatter
             this->PerformLayout();
         }
         #pragma endregion
+        
+        // ATAJOS Y ACCIONES
+        //
+        private: System::Void ventana_principal_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
+        {
+            if (e->Control && e->KeyCode == System::Windows::Forms::Keys::R)
+            {
+                directorios_unidades();
+            }
+        }
+
+        //
+        private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
+        {
+            formatear_unidad();
+        }
+
+        //
+        private: System::Void combobox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+        {
+            cambiar_unidad();
+        }
     };
 }

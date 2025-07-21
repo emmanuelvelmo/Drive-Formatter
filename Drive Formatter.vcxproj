@@ -134,6 +134,7 @@
   <ItemGroup>
     <EmbeddedResource Include="ventana_principal.resx">
       <DependentUpon>ventana_principal.h</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
