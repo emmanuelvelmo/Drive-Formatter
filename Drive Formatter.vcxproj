@@ -128,6 +128,7 @@
     <ClCompile Include="ventana_principal.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="variables.h" />
     <ClInclude Include="ventana_principal.h">
       <FileType>CppForm</FileType>
     </ClInclude>

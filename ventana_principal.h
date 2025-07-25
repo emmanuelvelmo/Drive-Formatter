@@ -89,6 +89,7 @@ namespace DriveFormatter
                 this->combobox1->Name = L"combobox1";
                 this->combobox1->Size = System::Drawing::Size(244, 21);
                 this->combobox1->TabIndex = 1;
+                this->combobox1->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
                 //
                 // button1
                 //

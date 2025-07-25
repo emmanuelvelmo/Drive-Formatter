@@ -5,49 +5,7 @@
 #include <cmath> //
 #include <malloc.h> //
 #include "ventana_principal.h" //
-
-// VARIABLES GLOBALES
-// Variables para la interfaz gráfica (WinAPI)
-HWND ventana_principal = nullptr; // Handle de la ventana principal
-HWND editor_hex = nullptr; // Handle del control para hex dump
-HWND combo_unidades = nullptr; // Handle del combo box para drives
-HWND barra_desplazamiento = nullptr; // Handle de la barra de desplazamiento
-HFONT fuente_fija = nullptr; // Fuente de ancho fijo
-
-// Manejadores y control de unidad
-HANDLE manejador_unidad = INVALID_HANDLE_VALUE; // Manejador dla unidad físico seleccionado
-DWORD bytes_por_sector = 512; // Tamaño de sector típico
-DWORD sectores_por_cluster = 0; // Sectores por cluster
-DWORD bytes_por_cluster = 0; // Bytes por cluster (calculado)
-LARGE_INTEGER tamano_unidad = { 0 }; // Tamaño total dla unidad en bytes
-
-// Buffers y datos de lectura
-BYTE* buffer_lectura = nullptr; // Buffer alineado para lectura de sectores
-DWORD tamano_buffer = 4096; // Tamaño del buffer de lectura
-DWORD bytes_leidos = 0; // Bytes leídos en la última operación
-uint64_t tamano_unidad_actual = 0; //
-
-// Control de interfaz y estado
-TCHAR unidad_actual[MAX_PATH] = L"\\\\.\\C:"; // Ruta dla unidad actual (ej: "\\\\.\\C:")
-TCHAR nombre_volumen[MAX_PATH] = { 0 }; // Nombre del volumen/etiqueta
-TCHAR sistema_archivos[MAX_PATH] = { 0 }; // Tipo de sistema de archivos
-DWORD numero_serial = 0; // Número serial dla unidad
-bool unidad_abierto = false; // Flag indicando si hay un unidad abierto
-
-// Listado de unidades disponibles
-std::vector<std::wstring> lista_unidades; // Array fijo para todas las posibles unidades (A-Z) en formato "\\\\.\\X:"
-int unidades_detectados = 0; // Cantidad real de unidades encontrados
-
-// Parámetros de visualización
-uint64_t desplazamiento_actual = 0; // Offset actual en la unidad
-const int columnas_hex = 16; // Columnas para visualización hexadecimal
-const int filas_hex = 24; // Filas para visualización hexadecimal
-unsigned char buffer_bytes[columnas_hex * filas_hex] = ""; // 
-unsigned int posicion_handler = 0; // Posición del handler de scrollbar vertical
-unsigned short altura_vscrollbar = 0; //
-
-// Variables para almacenamiento temporal
-TCHAR buffer_temporal[columnas_hex * filas_hex] = { 0 }; // Buffer para mensajes y conversiones
+#include "variables.h" //
 
 namespace DriveFormatter
 {
@@ -114,7 +72,7 @@ namespace DriveFormatter
         }
 
         // Mostrar el texto en el control EDIT
-        SetWindowText(editor_hex, texto_hex.c_str());
+        //SetWindowText(editor_hex, texto_hex.c_str());
     }
 
     // Función para
@@ -157,7 +115,7 @@ namespace DriveFormatter
     void ventana_principal::posicion_unidad_vscrollbar()
     {
         // Capturar posición de handler
-        posicion_handler = GetScrollPos(barra_desplazamiento, SB_CTL);
+        //posicion_handler = GetScrollPos(barra_desplazamiento, SB_CTL);
 
         // Calcular posición en unidad
         uint64_t posicion_unidad = static_cast<uint64_t>(round(static_cast<double>(tamano_unidad_actual) * (static_cast<double>(posicion_handler) / altura_vscrollbar)));
@@ -206,8 +164,8 @@ namespace DriveFormatter
     // Actualizar combobox con la lista de unidades disponibles
     void ventana_principal::actualizar_combobox()
     {
-        // Limpiar contenido previo del combobox 
-        SendMessage(combo_unidades, CB_RESETCONTENT, 0, 0);
+        // Limpiar contenido previo del combobox
+        combobox1->Items->Clear();
 
         // Recorremos solo las unidades existentes
         for (const auto& unidad : lista_unidades)
@@ -216,15 +174,14 @@ namespace DriveFormatter
             wchar_t display[10];
             swprintf(display, 10, L"%c:\\", unidad[4]);  // Extrae la letra
 
-            // 
-            SendMessage(combo_unidades, CB_ADDSTRING, 0, (LPARAM)display);
+            // Agregar al combobox
+            combobox1->Items->Add(gcnew System::String(display));
         }
 
         // Auto-selección si hay elementos
-        if (!lista_unidades.empty())
+        if (lista_unidades.size() > 0)
         {
-            // Agregar rutas al combobox en formato legible (ej. C:\, D:\)
-            SendMessage(combo_unidades, CB_SETCURSEL, 0, 0);
+            combobox1->SelectedIndex = 0;
         }
 
         // Obtener tamaño de bytes de unidad
@@ -261,15 +218,15 @@ namespace DriveFormatter
     {
         // Obtener letra de la unidad seleccionada (formato "C:")
         wchar_t unidad_seleccionada[4] = { 0 };
-        LRESULT indice_val = SendMessage(combo_unidades, CB_GETCURSEL, 0, 0);
-        SendMessage(combo_unidades, CB_GETLBTEXT, indice_val, (LPARAM)unidad_seleccionada);
+        //LRESULT indice_val = SendMessage(combo_unidades, CB_GETCURSEL, 0, 0);
+        //SendMessage(combo_unidades, CB_GETLBTEXT, indice_val, (LPARAM)unidad_seleccionada);
 
         // Actualizar variable global (convertir a formato "\\.\C:")
         swprintf(unidad_actual, MAX_PATH, L"\\\\.\\%c:", unidad_seleccionada[0]);
 
         // Colocar handler al inicio
         posicion_handler = 0;
-        SetScrollPos(barra_desplazamiento, SB_CTL, 0, TRUE);
+        //SetScrollPos(barra_desplazamiento, SB_CTL, 0, TRUE);
 
         // Obtener tamaño de bytes de unidad
         datos_unidad_actual();

@@ -17,3 +17,13 @@ Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c5619
 Class DriveFormatter.ventana_principal: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
   :System.Windows.Forms.Form
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    bytes_unidad_actual(): PrivateScope, Public, HideBySig
+    actualizar_caja_texto(UInt64): PrivateScope, Public, HideBySig
+    actualizar_barra_progreso(): PrivateScope, Public, HideBySig
+    formatear_unidad(): PrivateScope, Public, HideBySig
+    posicion_unidad_vscrollbar(): PrivateScope, Public, HideBySig
+    datos_unidad_actual(): PrivateScope, Public, HideBySig
+    actualizar_combobox(): PrivateScope, Public, HideBySig
+    directorios_unidades(): PrivateScope, Public, HideBySig
+    cambiar_unidad(): PrivateScope, Public, HideBySig
