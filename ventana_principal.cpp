@@ -1,5 +1,3 @@
-#pragma comment(lib, "user32.lib")
-#include <windows.h> // Necesario para HINSTANCE, LPSTR, etc.
 #include <tchar.h> // Para manejar caracteres TCHAR (compatibilidad Unicode/ANSI)
 #include <stdio.h> // Para funciones de entrada/salida estándar (printf)
 #include <iomanip> //
@@ -51,256 +49,232 @@ unsigned short altura_vscrollbar = 0; //
 // Variables para almacenamiento temporal
 TCHAR buffer_temporal[columnas_hex * filas_hex] = { 0 }; // Buffer para mensajes y conversiones
 
-// FUNCIONES
-// Función para obtener 384 bytes o menos desde la unidad (según la posición del scrollbar vertical)
-void bytes_unidad_actual()
+namespace DriveFormatter
 {
-    // Calcular cuántos bytes podemos leer (máximo 384 o los que queden)
-    DWORD bytes_a_leer = 384; // Nuestro tamaño deseado de lectura
-    uint64_t bytes_restantes = tamano_unidad_actual - desplazamiento_actual;
-
-    if (bytes_restantes < bytes_a_leer) {
-        bytes_a_leer = static_cast<DWORD>(bytes_restantes);
-    }
-
-    // Posicionarnos en el byte inicial (posicion_unidad) -------------------------------------------
-    LARGE_INTEGER pos;
-
-    pos.QuadPart = desplazamiento_actual;
-
-    SetFilePointer(manejador_unidad, pos.LowPart, &pos.HighPart, FILE_BEGIN);
-
-    // Realizar la lectura
-    ReadFile(
-        manejador_unidad,
-        buffer_lectura,
-        bytes_a_leer,
-        &bytes_leidos, // Variable global que almacena cuántos bytes se leyeron realmente
-        NULL
-    );
-}
-
-// Función para mostrar 384 bytes o menos en caja de texto
-void actualizar_caja_texto(uint64_t posicion_referencia)
-{
-    // Establecer la posición actual de lectura
-    desplazamiento_actual = posicion_referencia;
-
-    // Obtener 384 bytes o menos desde la unidad (rellenar con ceros para asegurar 2 cifras)
-    bytes_unidad_actual();
-
-    // Preparar el texto hexadecimal para mostrar
-    std::wstring texto_hex;
-    wchar_t byte_str[3]; // Buffer para cada byte (2 dígitos + null)
-
-    // Convertir cada byte a su representación hexadecimal
-    for (DWORD i = 0; i < bytes_leidos; ++i)
+    // FUNCIONES
+    // Función para obtener 384 bytes o menos desde la unidad (según la posición del scrollbar vertical)
+    void ventana_principal::bytes_unidad_actual()
     {
-        // Formatear cada byte como 2 dígitos hexadecimales
-        swprintf(byte_str, 3, L"%02X", buffer_lectura[i]);
+        // Calcular cuántos bytes podemos leer (máximo 384 o los que queden)
+        DWORD bytes_a_leer = 384; // Nuestro tamaño deseado de lectura
+        uint64_t bytes_restantes = tamano_unidad_actual - desplazamiento_actual;
 
-        // Agregar al texto resultante
-        texto_hex += byte_str;
-
-        // Agregar espacio cada 16 bytes para formato organizado
-        if ((i + 1) % 16 == 0)
-        {
-            texto_hex += L"\r\n"; // Nueva línea cada 16 bytes
+        if (bytes_restantes < bytes_a_leer) {
+            bytes_a_leer = static_cast<DWORD>(bytes_restantes);
         }
-        else
+
+        // Posicionarnos en el byte inicial (posicion_unidad)
+        LARGE_INTEGER pos;
+
+        pos.QuadPart = desplazamiento_actual;
+
+        SetFilePointer(manejador_unidad, pos.LowPart, &pos.HighPart, FILE_BEGIN);
+
+        // Realizar la lectura
+        ReadFile(
+            manejador_unidad,
+            buffer_lectura,
+            bytes_a_leer,
+            &bytes_leidos, // Variable global que almacena cuántos bytes se leyeron realmente
+            NULL
+        );
+    }
+
+    // Función para mostrar 384 bytes o menos en caja de texto
+    void ventana_principal::actualizar_caja_texto(uint64_t posicion_referencia)
+    {
+        // Establecer la posición actual de lectura
+        desplazamiento_actual = posicion_referencia;
+
+        // Obtener 384 bytes o menos desde la unidad (rellenar con ceros para asegurar 2 cifras)
+        bytes_unidad_actual();
+
+        // Preparar el texto hexadecimal para mostrar
+        std::wstring texto_hex;
+        wchar_t byte_str[3]; // Buffer para cada byte (2 dígitos + null)
+
+        // Convertir cada byte a su representación hexadecimal
+        for (DWORD i = 0; i < bytes_leidos; ++i)
         {
-            texto_hex += L" "; // Espacio entre bytes
+            // Formatear cada byte como 2 dígitos hexadecimales
+            swprintf(byte_str, 3, L"%02X", buffer_lectura[i]);
+
+            // Agregar al texto resultante
+            texto_hex += byte_str;
+
+            // Agregar espacio cada 16 bytes para formato organizado
+            if ((i + 1) % 16 == 0)
+            {
+                texto_hex += L"\r\n"; // Nueva línea cada 16 bytes
+            }
+            else
+            {
+                texto_hex += L" "; // Espacio entre bytes
+            }
         }
+
+        // Mostrar el texto en el control EDIT
+        SetWindowText(editor_hex, texto_hex.c_str());
     }
 
-    // Mostrar el texto en el control EDIT
-    SetWindowText(editor_hex, texto_hex.c_str());
-}
-
-// Función para
-void actualizar_barra_progreso()
-{
-    // Calcular progreso actual
-
-
-    // Mostrar progreso en barra
-
-}
-
-// Función para formatear unidad completa
-void formatear_unidad()
-{
-    // Acceder a unidad actual seleccionada
-    
-
-    // Reemplazar todos los bytes en unidad por 0x00
-    //for ()
-    //{
-        //
-
-
-        // Actualizar la barar de progreso
-        //actualizar_barra_progreso();
-    //}
-
-    // Reiniciar barra de progreso a cero
-
-
-    // Colocar handler al inicio
-    posicion_handler = 0;
-
-    // Actualizar vista hexadecimal
-    actualizar_caja_texto(0);
-}
-
-// Función para calcular posición en unidad a partir del handler de scrollbar vertical
-void posicion_unidad_vscrollbar()
-{
-    // Capturar posición de handler
-    posicion_handler = GetScrollPos(barra_desplazamiento, SB_CTL);
-
-    // Calcular posición en unidad
-    uint64_t posicion_unidad = static_cast<uint64_t>(round(static_cast<double>(tamano_unidad_actual) * (static_cast<double>(posicion_handler) / altura_vscrollbar)));
-
-    // Actualizar vista hexadecimal con la unidad actual seleccionado
-    actualizar_caja_texto(posicion_unidad);
-}
-
-// Función para registrar datos de la unidad seleccionada (ej. tamaño en bytes)
-void datos_unidad_actual()
-{
-    // Cerrar manejador si estaba abierto previamente
-    if (manejador_unidad != INVALID_HANDLE_VALUE)
+    // Función para
+    void ventana_principal::actualizar_barra_progreso()
     {
-        CloseHandle(manejador_unidad);
-        manejador_unidad = INVALID_HANDLE_VALUE;
+        // Calcular progreso actual
+
+
+        // Mostrar progreso en barra
+
     }
 
-    // Abrir la unidad física en modo lectura
-    manejador_unidad = CreateFileW(
-        unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
-        GENERIC_READ, // Solo lectura
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, // Compartir acceso
-        nullptr, // Sin atributos de seguridad
-        OPEN_EXISTING, // Abrir solo si existe
-        FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, // Acceso sin cache
-        nullptr // Sin plantilla
-    );
-
-    // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
-    LARGE_INTEGER tam_unidad;
-
-    GetFileSizeEx(manejador_unidad, &tam_unidad);
-
-    tamano_unidad_actual = tam_unidad.QuadPart;
-
-    // Inicializar buffer de lectura (sin tamaño fijo)
-    if (buffer_lectura != nullptr)
+    // Función para formatear unidad completa
+    void ventana_principal::formatear_unidad()
     {
-        _aligned_free(buffer_lectura);
+        // Acceder a unidad actual seleccionada
 
-        buffer_lectura = nullptr;
-    }
-}
 
-// Actualizar combobox con la lista de unidades disponibles
-void actualizar_combobox()
-{
-    // Limpiar contenido previo del combobox 
-    SendMessage(combo_unidades, CB_RESETCONTENT, 0, 0);
+        // Reemplazar todos los bytes en unidad por 0x00
+        //for ()
+        //{
+            //
 
-    // Recorremos solo las unidades existentes
-    for (const auto& unidad : lista_unidades)
-    {
-        // Formatear a "X:\" usando el dato del vector
-        wchar_t display[10];
-        swprintf(display, 10, L"%c:\\", unidad[4]);  // Extrae la letra
 
-        // 
-        SendMessage(combo_unidades, CB_ADDSTRING, 0, (LPARAM)display);
+            // Actualizar la barar de progreso
+            //actualizar_barra_progreso();
+        //}
+
+        // Reiniciar barra de progreso a cero
+
+
+        // Colocar handler al inicio
+        posicion_handler = 0;
+
+        // Actualizar vista hexadecimal
+        actualizar_caja_texto(0);
     }
 
-    // Auto-selección si hay elementos
-    if (!lista_unidades.empty())
+    // Función para calcular posición en unidad a partir del handler de scrollbar vertical
+    void ventana_principal::posicion_unidad_vscrollbar()
     {
-        // Agregar rutas al combobox en formato legible (ej. C:\, D:\)
-        SendMessage(combo_unidades, CB_SETCURSEL, 0, 0);
+        // Capturar posición de handler
+        posicion_handler = GetScrollPos(barra_desplazamiento, SB_CTL);
+
+        // Calcular posición en unidad
+        uint64_t posicion_unidad = static_cast<uint64_t>(round(static_cast<double>(tamano_unidad_actual) * (static_cast<double>(posicion_handler) / altura_vscrollbar)));
+
+        // Actualizar vista hexadecimal con la unidad actual seleccionado
+        actualizar_caja_texto(posicion_unidad);
     }
 
-    // Obtener tamaño de bytes de unidad
-    datos_unidad_actual();
-
-    // Actualizar vista hexadecimal con la unidad actual seleccionado
-    actualizar_caja_texto(0);
-}
-
-// Función para detectar y registrar unidades disponibles
-void directorios_unidades()
-{
-    lista_unidades.clear();  // Limpiar el vector
-
-    DWORD drives = GetLogicalDrives(); // 
-
-    for (char letter = 'A'; letter <= 'Z'; ++letter)
+    // Función para registrar datos de la unidad seleccionada (ej. tamaño en bytes)
+    void ventana_principal::datos_unidad_actual()
     {
-        if (drives & (1 << (letter - 'A')))
+        // Cerrar manejador si estaba abierto previamente
+        if (manejador_unidad != INVALID_HANDLE_VALUE)
         {
-            // Añadir al vector dinámico
-            wchar_t unidad[10];
-            swprintf(unidad, 10, L"\\\\.\\%c:", letter);
-            lista_unidades.push_back(unidad);
+            CloseHandle(manejador_unidad);
+            manejador_unidad = INVALID_HANDLE_VALUE;
+        }
+
+        // Abrir la unidad física en modo lectura
+        manejador_unidad = CreateFileW(
+            unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
+            GENERIC_READ, // Solo lectura
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, // Compartir acceso
+            nullptr, // Sin atributos de seguridad
+            OPEN_EXISTING, // Abrir solo si existe
+            FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, // Acceso sin cache
+            nullptr // Sin plantilla
+        );
+
+        // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
+        LARGE_INTEGER tam_unidad;
+
+        GetFileSizeEx(manejador_unidad, &tam_unidad);
+
+        tamano_unidad_actual = tam_unidad.QuadPart;
+
+        // Inicializar buffer de lectura (sin tamaño fijo)
+        if (buffer_lectura != nullptr)
+        {
+            _aligned_free(buffer_lectura);
+
+            buffer_lectura = nullptr;
         }
     }
 
-    // Actualizar combobox
-    actualizar_combobox();
-}
+    // Actualizar combobox con la lista de unidades disponibles
+    void ventana_principal::actualizar_combobox()
+    {
+        // Limpiar contenido previo del combobox 
+        SendMessage(combo_unidades, CB_RESETCONTENT, 0, 0);
 
-void cambiar_unidad()
-{
-    // Obtener letra de la unidad seleccionada (formato "C:")
-    wchar_t unidad_seleccionada[4] = { 0 };
-    LRESULT indice_val = SendMessage(combo_unidades, CB_GETCURSEL, 0, 0);
-    SendMessage(combo_unidades, CB_GETLBTEXT, indice_val, (LPARAM)unidad_seleccionada);
+        // Recorremos solo las unidades existentes
+        for (const auto& unidad : lista_unidades)
+        {
+            // Formatear a "X:\" usando el dato del vector
+            wchar_t display[10];
+            swprintf(display, 10, L"%c:\\", unidad[4]);  // Extrae la letra
 
-    // Actualizar variable global (convertir a formato "\\.\C:")
-    swprintf(unidad_actual, MAX_PATH, L"\\\\.\\%c:", unidad_seleccionada[0]);
+            // 
+            SendMessage(combo_unidades, CB_ADDSTRING, 0, (LPARAM)display);
+        }
 
-    // Colocar handler al inicio
-    posicion_handler = 0;
-    SetScrollPos(barra_desplazamiento, SB_CTL, 0, TRUE);
+        // Auto-selección si hay elementos
+        if (!lista_unidades.empty())
+        {
+            // Agregar rutas al combobox en formato legible (ej. C:\, D:\)
+            SendMessage(combo_unidades, CB_SETCURSEL, 0, 0);
+        }
 
-    // Obtener tamaño de bytes de unidad
-    datos_unidad_actual();
+        // Obtener tamaño de bytes de unidad
+        datos_unidad_actual();
 
-    // Actualizar vista hexadecimal
-    actualizar_caja_texto(0);
-}
+        // Actualizar vista hexadecimal con la unidad actual seleccionado
+        actualizar_caja_texto(0);
+    }
 
-//
-using namespace System;
+    // Función para detectar y registrar unidades disponibles
+    void ventana_principal::directorios_unidades()
+    {
+        lista_unidades.clear();  // Limpiar el vector
 
-// El atributo STAThread debe estar antes de la declaración de WinMain
-[STAThread]
+        DWORD drives = GetLogicalDrives(); // 
 
-// PUNTO DE PARTIDA
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-    // CONFIGURACIONES DEL PROGRAMA
-    //
-    System::Windows::Forms::Application::EnableVisualStyles();
-    //
-    System::Windows::Forms::Application::SetCompatibleTextRenderingDefault(false);
+        for (char letter = 'A'; letter <= 'Z'; ++letter)
+        {
+            if (drives & (1 << (letter - 'A')))
+            {
+                // Añadir al vector dinámico
+                wchar_t unidad[10];
+                swprintf(unidad, 10, L"\\\\.\\%c:", letter);
 
-    // Crear y ejecutar el formulario principal
-    //
-    DriveFormatter::ventana_principal^ form = gcnew DriveFormatter::ventana_principal();
-    //
-    System::Windows::Forms::Application::Run(form);
+                lista_unidades.push_back(unidad);
+            }
+        }
 
-    // LÓGICA DEL PROGRAMA AL INICIAR
-    // Obtener directorios de los unidades montadas
-    directorios_unidades();
+        // Actualizar combobox
+        actualizar_combobox();
+    }
 
-    return 0; // 
+    void ventana_principal::cambiar_unidad()
+    {
+        // Obtener letra de la unidad seleccionada (formato "C:")
+        wchar_t unidad_seleccionada[4] = { 0 };
+        LRESULT indice_val = SendMessage(combo_unidades, CB_GETCURSEL, 0, 0);
+        SendMessage(combo_unidades, CB_GETLBTEXT, indice_val, (LPARAM)unidad_seleccionada);
+
+        // Actualizar variable global (convertir a formato "\\.\C:")
+        swprintf(unidad_actual, MAX_PATH, L"\\\\.\\%c:", unidad_seleccionada[0]);
+
+        // Colocar handler al inicio
+        posicion_handler = 0;
+        SetScrollPos(barra_desplazamiento, SB_CTL, 0, TRUE);
+
+        // Obtener tamaño de bytes de unidad
+        datos_unidad_actual();
+
+        // Actualizar vista hexadecimal
+        actualizar_caja_texto(0);
+    }
 }
