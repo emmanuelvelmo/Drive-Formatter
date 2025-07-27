@@ -20,7 +20,7 @@ Class DriveFormatter.ventana_principal: AutoLayout, AnsiClass, Class, Public, Be
   Methods:
     leer_bytes_unidad(): PrivateScope, Public, HideBySig
     actualizar_caja_texto(UInt64): PrivateScope, Public, HideBySig
-    actualizar_barra_progreso(): PrivateScope, Public, HideBySig
+    actualizar_barra_progreso(UInt64): PrivateScope, Public, HideBySig
     formatear_unidad(): PrivateScope, Public, HideBySig
     posicion_unidad_vscrollbar(): PrivateScope, Public, HideBySig
     datos_unidad_actual(): PrivateScope, Public, HideBySig

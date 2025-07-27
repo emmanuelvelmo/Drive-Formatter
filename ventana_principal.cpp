@@ -1,11 +1,11 @@
 #include <tchar.h> // Para manejar caracteres TCHAR (compatibilidad Unicode/ANSI)
 #include <stdio.h> // Para funciones de entrada/salida estándar (printf)
-#include <iomanip> //
-#include <vector> //
-#include <cmath> //
-#include <malloc.h> //
-#include "ventana_principal.h" //
-#include "variables.h" //
+#include <iomanip> // 
+#include <vector> // 
+#include <cmath> // 
+#include <malloc.h> // 
+#include "ventana_principal.h" // 
+#include "variables.h" // 
 
 namespace DriveFormatter
 {
@@ -14,7 +14,7 @@ namespace DriveFormatter
     void ventana_principal::leer_bytes_unidad()
     {
         // 
-        LARGE_INTEGER pos_val;
+        LARGE_INTEGER pos_val; // 
 
         pos_val.QuadPart = posicion_unidad; // 
 
@@ -64,42 +64,75 @@ namespace DriveFormatter
     }
 
     // Función para
-    void ventana_principal::actualizar_barra_progreso()
+    void ventana_principal::actualizar_barra_progreso(uint64_t pos_val)
     {
         // Calcular progreso actual
-
+        unsigned short progreso_val = 100.0f * (static_cast<float>(pos_val) / tamano_unidad_actual);
 
         // Mostrar progreso en barra
-
+        progressBar1->Value = progreso_val;
     }
 
     // Función para formatear unidad completa
     void ventana_principal::formatear_unidad()
     {
-        // Acceder a unidad actual seleccionada
+        // Mostrar mensaje de advertencia
+        if (System::Windows::Forms::MessageBox::Show("All data on the selected disk will be erased", "Warning Message", System::Windows::Forms::MessageBoxButtons::YesNo, System::Windows::Forms::MessageBoxIcon::Warning) == System::Windows::Forms::DialogResult::Yes)
+        {
+            // Crear buffer de ceros alineado
+            void* buffer_ceros = _aligned_malloc(512, 512);
 
+            // Llenamos el buffer con ceros
+            memset(buffer_ceros, 0, 512);
 
-        // Reemplazar todos los bytes en unidad por 0x00
-        //for ()
-        //{
-            //
+            // 
+            LARGE_INTEGER pos_val = { 0 }; // 
 
+            // Reemplazar todos los bytes en unidad por 0x00
+            while (true)
+            {
+                // Posicionar puntero
+                SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
+                    pos_val, // Desplazamiento (offset) en bytes
+                    nullptr, // Devuelve la nueva posición (puede ser nullptr)
+                    FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
+                );
 
-            // Actualizar la barar de progreso
-            //actualizar_barra_progreso();
-        //}
+                DWORD bytes_escritos; // 
 
-        // Reiniciar barra de progreso a cero
+                // Escribir sector de ceros
+                WriteFile(manejador_unidad, // 
+                    buffer_ceros, // 
+                    512, // 
+                    &bytes_escritos, // 
+                    nullptr // 
+                );
 
+                // Avanzar al siguiente sector
+                pos_val.QuadPart += 512;
 
-        // Reiniciar a sector 0
-        proporcion_scrollbar = 0;
+                // Actualizar la barar de progreso
+                actualizar_barra_progreso(pos_val.QuadPart);
+            }
 
-        // Colocar handler al inicio
-        vScrollBar1->Value = 0;
+            // Liberar memoria
+            _aligned_free(buffer_ceros);
 
-        // Actualizar vista hexadecimal
-        actualizar_caja_texto(0);
+            // Reiniciar barra de progreso a cero
+            progressBar1->Value = 0;
+
+            // Reiniciar a sector 0
+            proporcion_scrollbar = 0;
+
+            // Colocar handler al inicio
+            vScrollBar1->Value = 0;
+
+            // Actualizar vista hexadecimal
+            actualizar_caja_texto(0);
+
+            // Mostrar mensaje de finalización
+            System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
+        }
     }
 
     // Función para calcular posición en unidad a partir del handler de scrollbar vertical
@@ -140,7 +173,11 @@ namespace DriveFormatter
         // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
         LARGE_INTEGER tam_unidad; // 
 
-        GetFileSizeEx(manejador_unidad, &tam_unidad); // 
+        // 
+        GetFileSizeEx(
+            manejador_unidad, // 
+            &tam_unidad // 
+        );
 
         tamano_unidad_actual = tam_unidad.QuadPart; // 
 

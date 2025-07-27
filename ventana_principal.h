@@ -49,7 +49,7 @@ namespace DriveFormatter
             // FUNCIONES A USAR EN CPP
             void leer_bytes_unidad();
             void actualizar_caja_texto(uint64_t posicion_referencia);
-            void actualizar_barra_progreso();
+            void actualizar_barra_progreso(uint64_t pos_val);
             void formatear_unidad();
             void posicion_unidad_vscrollbar();
             void datos_unidad_actual();
@@ -112,6 +112,8 @@ namespace DriveFormatter
                 this->progressBar1->Name = L"progressBar1";
                 this->progressBar1->Size = System::Drawing::Size(312, 23);
                 this->progressBar1->TabIndex = 3;
+                this->progressBar1->Minimum = 0; // Valor mínimo (0%)
+                this->progressBar1->Maximum = 100; // Valor máximo (100%)
                 // 
                 // textBox1
                 // 
@@ -148,7 +150,6 @@ namespace DriveFormatter
                 this->Text = L"Drive Formatter";
                 this->ResumeLayout(false);
                 this->PerformLayout();
-
             }
             // 
             #pragma endregion
