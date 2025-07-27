@@ -3,7 +3,8 @@
 #include <iomanip> // 
 #include <vector> // 
 #include <cmath> // 
-#include <malloc.h> // 
+#include <malloc.h> //
+#include <windows.h> // 
 #include "ventana_principal.h" // 
 #include "variables.h" // 
 
@@ -79,6 +80,15 @@ namespace DriveFormatter
         // Mostrar mensaje de advertencia
         if (System::Windows::Forms::MessageBox::Show("All data on the selected disk will be erased", "Warning Message", System::Windows::Forms::MessageBoxButtons::YesNo, System::Windows::Forms::MessageBoxIcon::Warning) == System::Windows::Forms::DialogResult::Yes)
         {
+            // Deshabilitar controles
+            comboBox1->Enabled = false;
+            button1->Enabled = false;
+            textBox1->Enabled = false;
+            vScrollBar1->Enabled = false;
+
+            // Ejecutar en un hilo dedicado
+
+
             // Crear buffer de ceros alineado
             void* buffer_ceros = _aligned_malloc(512, 512);
 
@@ -89,7 +99,7 @@ namespace DriveFormatter
             LARGE_INTEGER pos_val = { 0 }; // 
 
             // Reemplazar todos los bytes en unidad por 0x00
-            while (true)
+            while (pos_val.QuadPart < tamano_unidad_actual)
             {
                 // Posicionar puntero
                 SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
@@ -111,12 +121,19 @@ namespace DriveFormatter
                 // Avanzar al siguiente sector
                 pos_val.QuadPart += 512;
 
-                // Actualizar la barar de progreso
+                // Actualizar la barra de progreso
                 actualizar_barra_progreso(pos_val.QuadPart);
             }
 
             // Liberar memoria
             _aligned_free(buffer_ceros);
+
+
+
+
+
+
+
 
             // Reiniciar barra de progreso a cero
             progressBar1->Value = 0;
@@ -132,6 +149,12 @@ namespace DriveFormatter
 
             // Mostrar mensaje de finalización
             System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
+        
+            // Rehabilitar controles
+            comboBox1->Enabled = true;
+            button1->Enabled = true;
+            textBox1->Enabled = true;
+            vScrollBar1->Enabled = true;
         }
     }
 
@@ -154,9 +177,9 @@ namespace DriveFormatter
         // Cerrar manejador si estaba abierto previamente
         if (manejador_unidad != INVALID_HANDLE_VALUE)
         {
-            CloseHandle(manejador_unidad);
+            CloseHandle(manejador_unidad); // 
 
-            manejador_unidad = INVALID_HANDLE_VALUE;
+            manejador_unidad = INVALID_HANDLE_VALUE; // 
         }
 
         // Abrir la unidad física en modo lectura
@@ -171,15 +194,20 @@ namespace DriveFormatter
         );
 
         // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
-        LARGE_INTEGER tam_unidad; // 
+        GET_LENGTH_INFORMATION tam_unidad;
+        DWORD bytes_retorno;
 
-        // 
-        GetFileSizeEx(
-            manejador_unidad, // 
-            &tam_unidad // 
+        DeviceIoControl(
+            manejador_unidad, // Handle del disco
+            IOCTL_DISK_GET_LENGTH_INFO, // Código de control
+            NULL, // 
+            0, // 
+            &tam_unidad, sizeof(tam_unidad), // Buffer de salida
+            &bytes_retorno, // Bytes devueltos
+            NULL // No overlapped I/O
         );
 
-        tamano_unidad_actual = tam_unidad.QuadPart; // 
+        tamano_unidad_actual = tam_unidad.Length.QuadPart; // Tamaño real en bytes
 
         // Calcular el número de sectores en la unidad
         cantidad_sectores = round(tamano_unidad_actual / 512);

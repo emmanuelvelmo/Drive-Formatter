@@ -1,6 +1,9 @@
-﻿  ventana_principal.cpp
-C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(70,37): warning C4244: 'initializing': conversion from 'float' to 'unsigned short', possible loss of data
-C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(145,37): warning C4244: 'initializing': conversion from 'float' to 'uint64_t', possible loss of data
-C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(185,34): warning C4244: '=': conversion from 'double' to 'unsigned int', possible loss of data
+﻿  main.cpp
+  ventana_principal.cpp
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(71,37): warning C4244: 'initializing': conversion from 'float' to 'unsigned short', possible loss of data
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(104,37): warning C4018: '<': signed/unsigned mismatch
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(170,37): warning C4244: 'initializing': conversion from 'float' to 'uint64_t', possible loss of data
+C:\Users\-\Desktop\Drive Formatter\ventana_principal.cpp(215,34): warning C4244: '=': conversion from 'double' to 'unsigned int', possible loss of data
+  Generating Code...
   main.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
   Drive Formatter.vcxproj -> C:\Users\-\Desktop\Drive Formatter\x64\Debug\Drive Formatter.exe
