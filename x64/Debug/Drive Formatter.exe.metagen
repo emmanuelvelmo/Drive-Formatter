@@ -18,7 +18,7 @@ Class DriveFormatter.ventana_principal: AutoLayout, AnsiClass, Class, Public, Be
   :System.Windows.Forms.Form
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
-    bytes_unidad_actual(): PrivateScope, Public, HideBySig
+    leer_bytes_unidad(): PrivateScope, Public, HideBySig
     actualizar_caja_texto(UInt64): PrivateScope, Public, HideBySig
     actualizar_barra_progreso(): PrivateScope, Public, HideBySig
     formatear_unidad(): PrivateScope, Public, HideBySig

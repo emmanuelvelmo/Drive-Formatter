@@ -11,68 +11,56 @@ namespace DriveFormatter
 {
     // FUNCIONES
     // Función para obtener 384 bytes o menos desde la unidad (según la posición del scrollbar vertical)
-    void ventana_principal::bytes_unidad_actual()
+    void ventana_principal::leer_bytes_unidad()
     {
-        // Calcular cuántos bytes podemos leer (máximo 384 o los que queden)
-        DWORD bytes_a_leer = 384; // Nuestro tamaño deseado de lectura
-        uint64_t bytes_restantes = tamano_unidad_actual - desplazamiento_actual;
+        // 
+        LARGE_INTEGER pos_val;
 
-        if (bytes_restantes < bytes_a_leer) {
-            bytes_a_leer = static_cast<DWORD>(bytes_restantes);
-        }
+        pos_val.QuadPart = posicion_unidad; // 
 
-        // Posicionarnos en el byte inicial (posicion_unidad)
-        LARGE_INTEGER pos;
-
-        pos.QuadPart = desplazamiento_actual;
-
-        SetFilePointer(manejador_unidad, pos.LowPart, &pos.HighPart, FILE_BEGIN);
+        // Posición inicial de la unidad a leer
+        SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
+            pos_val, // Desplazamiento (offset) en bytes
+            nullptr, // Devuelve la nueva posición (puede ser nullptr)
+            FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
+        );
 
         // Realizar la lectura
-        ReadFile(
-            manejador_unidad,
-            buffer_lectura,
-            bytes_a_leer,
+        if (!ReadFile(
+            manejador_unidad, // El identificador de la unidad abierta con CreateFile()
+            buffer_lectura, // Puntero al buffer donde se guardarán los datos leídos
+            512, // Número de bytes a leer (debe ser múltiplo del tamaño de sector)
             &bytes_leidos, // Variable global que almacena cuántos bytes se leyeron realmente
-            NULL
-        );
+            NULL // NULL para operación síncrona (si no, usar estructura OVERLAPPED para I/O asíncrono)
+        ))
+        {
+            // Si ReadFile falla, llenamos el buffer con ceros
+            memset(buffer_lectura, 0, 512);
+        }
     }
 
-    // Función para mostrar 384 bytes o menos en caja de texto
+    // Función para mostrar 384 bytes en caja de texto
     void ventana_principal::actualizar_caja_texto(uint64_t posicion_referencia)
     {
         // Establecer la posición actual de lectura
-        desplazamiento_actual = posicion_referencia;
+        posicion_unidad = posicion_referencia;
 
         // Obtener 384 bytes o menos desde la unidad (rellenar con ceros para asegurar 2 cifras)
-        bytes_unidad_actual();
+        leer_bytes_unidad();
 
         // Preparar el texto hexadecimal para mostrar
-        std::wstring texto_hex;
-        wchar_t byte_str[3]; // Buffer para cada byte (2 dígitos + null)
+        System::String^ texto_hex = gcnew System::String(""); // 
 
-        // Convertir cada byte a su representación hexadecimal
-        for (DWORD i = 0; i < bytes_leidos; ++i)
+        BYTE* buffer = static_cast<BYTE*>(buffer_lectura); // 
+
+        // 
+        for (DWORD i = 0; i < 384; ++i)
         {
-            // Formatear cada byte como 2 dígitos hexadecimales
-            swprintf(byte_str, 3, L"%02X", buffer_lectura[i]);
-
-            // Agregar al texto resultante
-            texto_hex += byte_str;
-
-            // Agregar espacio cada 16 bytes para formato organizado
-            if ((i + 1) % 16 == 0)
-            {
-                texto_hex += L"\r\n"; // Nueva línea cada 16 bytes
-            }
-            else
-            {
-                texto_hex += L" "; // Espacio entre bytes
-            }
+            texto_hex += System::String::Format("{0:X2} ", buffer[i]);
         }
 
         // Mostrar el texto en el control EDIT
-        //SetWindowText(editor_hex, texto_hex.c_str());
+        textBox1->Text = texto_hex;
     }
 
     // Función para
@@ -104,8 +92,11 @@ namespace DriveFormatter
         // Reiniciar barra de progreso a cero
 
 
+        // Reiniciar a sector 0
+        proporcion_scrollbar = 0;
+
         // Colocar handler al inicio
-        posicion_handler = 0;
+        vScrollBar1->Value = 0;
 
         // Actualizar vista hexadecimal
         actualizar_caja_texto(0);
@@ -115,13 +106,13 @@ namespace DriveFormatter
     void ventana_principal::posicion_unidad_vscrollbar()
     {
         // Capturar posición de handler
-        //posicion_handler = GetScrollPos(barra_desplazamiento, SB_CTL);
+        proporcion_scrollbar = static_cast<float>(vScrollBar1->Value) / 100.0f;
 
-        // Calcular posición en unidad
-        uint64_t posicion_unidad = static_cast<uint64_t>(round(static_cast<double>(tamano_unidad_actual) * (static_cast<double>(posicion_handler) / altura_vscrollbar)));
+        // Calcular byte en la unidad (sector según posición del scrollbar vertical)
+        uint64_t posicion_calculada = round(proporcion_scrollbar * cantidad_sectores) * 512;
 
         // Actualizar vista hexadecimal con la unidad actual seleccionado
-        actualizar_caja_texto(posicion_unidad);
+        actualizar_caja_texto(posicion_calculada);
     }
 
     // Función para registrar datos de la unidad seleccionada (ej. tamaño en bytes)
@@ -131,58 +122,52 @@ namespace DriveFormatter
         if (manejador_unidad != INVALID_HANDLE_VALUE)
         {
             CloseHandle(manejador_unidad);
+
             manejador_unidad = INVALID_HANDLE_VALUE;
         }
 
         // Abrir la unidad física en modo lectura
         manejador_unidad = CreateFileW(
             unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
-            GENERIC_READ, // Solo lectura
+            GENERIC_READ | GENERIC_WRITE, // Permisos de lectura y escritura
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, // Compartir acceso
             nullptr, // Sin atributos de seguridad
             OPEN_EXISTING, // Abrir solo si existe
             FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, // Acceso sin cache
-            nullptr // Sin plantilla
+            nullptr // Sin plantilla de archivo
         );
 
         // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
-        LARGE_INTEGER tam_unidad;
+        LARGE_INTEGER tam_unidad; // 
 
-        GetFileSizeEx(manejador_unidad, &tam_unidad);
+        GetFileSizeEx(manejador_unidad, &tam_unidad); // 
 
-        tamano_unidad_actual = tam_unidad.QuadPart;
+        tamano_unidad_actual = tam_unidad.QuadPart; // 
 
-        // Inicializar buffer de lectura (sin tamaño fijo)
-        if (buffer_lectura != nullptr)
-        {
-            _aligned_free(buffer_lectura);
-
-            buffer_lectura = nullptr;
-        }
+        // Calcular el número de sectores en la unidad
+        cantidad_sectores = round(tamano_unidad_actual / 512);
     }
 
     // Actualizar combobox con la lista de unidades disponibles
     void ventana_principal::actualizar_combobox()
     {
         // Limpiar contenido previo del combobox
-        combobox1->Items->Clear();
+        comboBox1->Items->Clear();
 
-        // Recorremos solo las unidades existentes
+        // Recorremos sólo las unidades existentes
         for (const auto& unidad : lista_unidades)
         {
             // Formatear a "X:\" usando el dato del vector
             wchar_t display[10];
+
             swprintf(display, 10, L"%c:\\", unidad[4]);  // Extrae la letra
 
             // Agregar al combobox
-            combobox1->Items->Add(gcnew System::String(display));
+            comboBox1->Items->Add(gcnew System::String(display));
         }
 
         // Auto-selección si hay elementos
-        if (lista_unidades.size() > 0)
-        {
-            combobox1->SelectedIndex = 0;
-        }
+        comboBox1->SelectedIndex = 0;
 
         // Obtener tamaño de bytes de unidad
         datos_unidad_actual();
@@ -194,6 +179,12 @@ namespace DriveFormatter
     // Función para detectar y registrar unidades disponibles
     void ventana_principal::directorios_unidades()
     {
+        // Reiniciar a sector 0
+        proporcion_scrollbar = 0;
+
+        // Colocar handler al inicio
+        vScrollBar1->Value = 0;
+
         lista_unidades.clear();  // Limpiar el vector
 
         DWORD drives = GetLogicalDrives(); // 
@@ -203,10 +194,11 @@ namespace DriveFormatter
             if (drives & (1 << (letter - 'A')))
             {
                 // Añadir al vector dinámico
-                wchar_t unidad[10];
-                swprintf(unidad, 10, L"\\\\.\\%c:", letter);
+                wchar_t unidad[10]; // 
 
-                lista_unidades.push_back(unidad);
+                swprintf(unidad, 10, L"\\\\.\\%c:", letter); // 
+
+                lista_unidades.push_back(unidad); // 
             }
         }
 
@@ -214,19 +206,17 @@ namespace DriveFormatter
         actualizar_combobox();
     }
 
+    // Función para 
     void ventana_principal::cambiar_unidad()
     {
-        // Obtener letra de la unidad seleccionada (formato "C:")
-        wchar_t unidad_seleccionada[4] = { 0 };
-        //LRESULT indice_val = SendMessage(combo_unidades, CB_GETCURSEL, 0, 0);
-        //SendMessage(combo_unidades, CB_GETLBTEXT, indice_val, (LPARAM)unidad_seleccionada);
+        // Obtener la ruta completa de la unidad seleccionada desde lista_unidades
+        wcscpy_s(unidad_actual, MAX_PATH, lista_unidades[comboBox1->SelectedIndex].c_str());
 
-        // Actualizar variable global (convertir a formato "\\.\C:")
-        swprintf(unidad_actual, MAX_PATH, L"\\\\.\\%c:", unidad_seleccionada[0]);
+        // Reiniciar a sector 0
+        proporcion_scrollbar = 0;
 
         // Colocar handler al inicio
-        posicion_handler = 0;
-        //SetScrollPos(barra_desplazamiento, SB_CTL, 0, TRUE);
+        vScrollBar1->Value = 0;
 
         // Obtener tamaño de bytes de unidad
         datos_unidad_actual();
