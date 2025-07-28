@@ -3,6 +3,10 @@
 #include <iomanip> // 
 #include <vector> // 
 #include <cmath> // 
+#include <thread> //
+
+
+
 #include <malloc.h> //
 #include <windows.h> // 
 #include "ventana_principal.h" // 
@@ -97,12 +101,21 @@ namespace DriveFormatter
     }
 
     // 
-    void ventana_principal::hilo_formateo()
+    void ventana_principal::sobrescribir_segmentos()
     {
+
+
+
+
+
+
+
+
+
         // Definir tamaño de bloque (múltiplo de 512 bytes)
         const DWORD tamano_bloque = 64 * 1024; // Bloques de 64KB
 
-        // Crear buffer de ceros alineado (ahora mucho más grande)
+        // Crear buffer de ceros alineado
         void* buffer_ceros = _aligned_malloc(tamano_bloque, 512);
 
         // Llenamos el buffer con ceros
@@ -149,6 +162,28 @@ namespace DriveFormatter
 
         // Liberar memoria
         _aligned_free(buffer_ceros);
+    }
+
+    // 
+    void ventana_principal::hilo_formateo()
+    {
+        // Detectar número de hilos disponibles
+        unsigned short num_hilos = std::thread::hardware_concurrency();
+
+        // Tamaño de cada segmento de la unidad en relación al número de hilos disponibles
+        uint64_t tamano_segmento = tamano_unidad_actual / num_hilos;
+
+        // Sobrescribir cada segmento en un hilo dedicado (sobrescritura en paralelo)
+        sobrescribir_segmentos();
+
+
+
+
+
+
+
+
+        
 
         // Asegurar que la barra llegue al 100%
         this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), tamano_unidad_actual);
@@ -159,12 +194,6 @@ namespace DriveFormatter
         // Habilitar controles
         this->Invoke(gcnew System::Action(this, &ventana_principal::habilitar_gui));
     }
-
-
-
-
-
-
 
     // Función para formatear unidad completa
     void ventana_principal::formatear_unidad()
@@ -255,7 +284,7 @@ namespace DriveFormatter
             // Formatear a "X:\" usando el dato del vector
             wchar_t display[10];
 
-            swprintf(display, 10, L"%c:\\", unidad[4]);  // Extrae la letra
+            swprintf(display, 10, L"%c:\\", unidad[4]); // Extrae la letra
 
             // Agregar al combobox
             comboBox1->Items->Add(gcnew System::String(display));

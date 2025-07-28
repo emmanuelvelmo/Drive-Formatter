@@ -58,6 +58,7 @@ namespace DriveFormatter
             void cambiar_unidad(); // 
             void habilitar_gui(); // 
             void hilo_formateo(); // 
+            void sobrescribir_segmentos(); // 
 
         private:
             System::Windows::Forms::Label^ label1; // Etiqueta que indica "Select Device:"
