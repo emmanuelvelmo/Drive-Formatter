@@ -99,11 +99,14 @@ namespace DriveFormatter
     // 
     void ventana_principal::hilo_formateo()
     {
-        // Crear buffer de ceros alineado
-        void* buffer_ceros = _aligned_malloc(512, 512);
+        // Definir tamaño de bloque (múltiplo de 512 bytes)
+        const DWORD tamano_bloque = 64 * 1024; // Bloques de 64KB
+
+        // Crear buffer de ceros alineado (ahora mucho más grande)
+        void* buffer_ceros = _aligned_malloc(tamano_bloque, 512);
 
         // Llenamos el buffer con ceros
-        memset(buffer_ceros, 0, 512);
+        memset(buffer_ceros, 0, tamano_bloque);
 
         // 
         LARGE_INTEGER pos_val = { 0 }; // 
@@ -111,8 +114,13 @@ namespace DriveFormatter
         // Reemplazar todos los bytes en unidad por 0x00
         while (pos_val.QuadPart < tamano_unidad_actual)
         {
+            // Calcular cuántos bytes escribir en esta iteración
+            uint64_t bytes_restantes = tamano_unidad_actual - pos_val.QuadPart;
+            DWORD bytes_a_escribir = static_cast<DWORD>(min(static_cast<uint64_t>(tamano_bloque), bytes_restantes));
+
             // Posicionar puntero
-            SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
+            SetFilePointerEx(
+                manejador_unidad, // Manejador del archivo o disco
                 pos_val, // Desplazamiento (offset) en bytes
                 nullptr, // Devuelve la nueva posición (puede ser nullptr)
                 FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
@@ -120,30 +128,43 @@ namespace DriveFormatter
 
             DWORD bytes_escritos; // 
 
-            // Escribir sector de ceros
-            WriteFile(manejador_unidad, // 
+            // Escribir bloque de ceros
+            WriteFile(
+                manejador_unidad, // 
                 buffer_ceros, // 
-                512, // 
+                bytes_a_escribir, // 
                 &bytes_escritos, // 
                 nullptr // 
             );
 
-            // Avanzar al siguiente sector
-            pos_val.QuadPart += 512;
+            // Avanzar al siguiente bloque
+            pos_val.QuadPart += bytes_escritos;
 
-            // Actualizar la barra de progreso desde el hilo principal
-            this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), static_cast<uint64_t>(pos_val.QuadPart));
+            // Actualizar barra de progreso cada 1MB (polling)
+            if (pos_val.QuadPart % (1024 * 1024) == 0)
+            {
+                this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), static_cast<uint64_t>(pos_val.QuadPart)); // 
+            }
         }
 
         // Liberar memoria
         _aligned_free(buffer_ceros);
 
+        // Asegurar que la barra llegue al 100%
+        this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), tamano_unidad_actual);
+
         // Mostrar mensaje de finalización
         System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
 
-        // Habilitar controles (actualizar GUI) desde el hilo principal
+        // Habilitar controles
         this->Invoke(gcnew System::Action(this, &ventana_principal::habilitar_gui));
     }
+
+
+
+
+
+
 
     // Función para formatear unidad completa
     void ventana_principal::formatear_unidad()
@@ -195,7 +216,10 @@ namespace DriveFormatter
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, // Compartir acceso
             nullptr, // Sin atributos de seguridad
             OPEN_EXISTING, // Abrir solo si existe
-            FILE_FLAG_NO_BUFFERING | FILE_FLAG_SEQUENTIAL_SCAN, // Acceso sin cache
+            FILE_FLAG_NO_BUFFERING | // Sin buffering del sistema
+            FILE_FLAG_WRITE_THROUGH | // Escritura directa al hardware
+            FILE_FLAG_SEQUENTIAL_SCAN | // Acceso secuencial optimizado
+            FILE_FLAG_OVERLAPPED, // Habilitar I/O asíncrono
             nullptr // Sin plantilla de archivo
         );
 
