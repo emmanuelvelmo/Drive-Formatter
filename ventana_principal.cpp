@@ -64,14 +64,85 @@ namespace DriveFormatter
         textBox1->Text = texto_hex;
     }
 
-    // Función para
+    // Función para 
     void ventana_principal::actualizar_barra_progreso(uint64_t pos_val)
     {
         // Calcular progreso actual
-        unsigned short progreso_val = 100.0f * (static_cast<float>(pos_val) / tamano_unidad_actual);
+        unsigned short progreso_val = round(100.0f * (static_cast<float>(pos_val) / tamano_unidad_actual));
 
         // Mostrar progreso en barra
         progressBar1->Value = progreso_val;
+    }
+
+    // 
+    void ventana_principal::habilitar_gui()
+    {
+        // Reiniciar barra de progreso a cero
+        progressBar1->Value = 0;
+
+        // Reiniciar a sector 0
+        proporcion_scrollbar = 0;
+
+        // Colocar handler al inicio
+        vScrollBar1->Value = 0;
+
+        // Actualizar vista hexadecimal
+        actualizar_caja_texto(0);
+
+        // Rehabilitar controles
+        comboBox1->Enabled = true;
+        button1->Enabled = true;
+        textBox1->Enabled = true;
+        vScrollBar1->Enabled = true;
+    }
+
+    // 
+    void ventana_principal::hilo_formateo()
+    {
+        // Crear buffer de ceros alineado
+        void* buffer_ceros = _aligned_malloc(512, 512);
+
+        // Llenamos el buffer con ceros
+        memset(buffer_ceros, 0, 512);
+
+        // 
+        LARGE_INTEGER pos_val = { 0 }; // 
+
+        // Reemplazar todos los bytes en unidad por 0x00
+        while (pos_val.QuadPart < tamano_unidad_actual)
+        {
+            // Posicionar puntero
+            SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
+                pos_val, // Desplazamiento (offset) en bytes
+                nullptr, // Devuelve la nueva posición (puede ser nullptr)
+                FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
+            );
+
+            DWORD bytes_escritos; // 
+
+            // Escribir sector de ceros
+            WriteFile(manejador_unidad, // 
+                buffer_ceros, // 
+                512, // 
+                &bytes_escritos, // 
+                nullptr // 
+            );
+
+            // Avanzar al siguiente sector
+            pos_val.QuadPart += 512;
+
+            // Actualizar la barra de progreso desde el hilo principal
+            this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), static_cast<uint64_t>(pos_val.QuadPart));
+        }
+
+        // Liberar memoria
+        _aligned_free(buffer_ceros);
+
+        // Mostrar mensaje de finalización
+        System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
+
+        // Habilitar controles (actualizar GUI) desde el hilo principal
+        this->Invoke(gcnew System::Action(this, &ventana_principal::habilitar_gui));
     }
 
     // Función para formatear unidad completa
@@ -86,75 +157,10 @@ namespace DriveFormatter
             textBox1->Enabled = false;
             vScrollBar1->Enabled = false;
 
-            // Ejecutar en un hilo dedicado
-
-
-            // Crear buffer de ceros alineado
-            void* buffer_ceros = _aligned_malloc(512, 512);
-
-            // Llenamos el buffer con ceros
-            memset(buffer_ceros, 0, 512);
-
-            // 
-            LARGE_INTEGER pos_val = { 0 }; // 
-
-            // Reemplazar todos los bytes en unidad por 0x00
-            while (pos_val.QuadPart < tamano_unidad_actual)
-            {
-                // Posicionar puntero
-                SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
-                    pos_val, // Desplazamiento (offset) en bytes
-                    nullptr, // Devuelve la nueva posición (puede ser nullptr)
-                    FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
-                );
-
-                DWORD bytes_escritos; // 
-
-                // Escribir sector de ceros
-                WriteFile(manejador_unidad, // 
-                    buffer_ceros, // 
-                    512, // 
-                    &bytes_escritos, // 
-                    nullptr // 
-                );
-
-                // Avanzar al siguiente sector
-                pos_val.QuadPart += 512;
-
-                // Actualizar la barra de progreso
-                actualizar_barra_progreso(pos_val.QuadPart);
-            }
-
-            // Liberar memoria
-            _aligned_free(buffer_ceros);
-
-
-
-
-
-
-
-
-            // Reiniciar barra de progreso a cero
-            progressBar1->Value = 0;
-
-            // Reiniciar a sector 0
-            proporcion_scrollbar = 0;
-
-            // Colocar handler al inicio
-            vScrollBar1->Value = 0;
-
-            // Actualizar vista hexadecimal
-            actualizar_caja_texto(0);
-
-            // Mostrar mensaje de finalización
-            System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
-        
-            // Rehabilitar controles
-            comboBox1->Enabled = true;
-            button1->Enabled = true;
-            textBox1->Enabled = true;
-            vScrollBar1->Enabled = true;
+            // Ejecutar formateo en un hilo dedicado (evita que la GUI se congele)
+            hilo_secundario = gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &ventana_principal::hilo_formateo)); // 
+            hilo_secundario->IsBackground = true; // Hilo en segundo plano
+            hilo_secundario->Start(); // 
         }
     }
 
@@ -193,10 +199,11 @@ namespace DriveFormatter
             nullptr // Sin plantilla de archivo
         );
 
-        // Obtener tamaño de la unidad (alternativa simple sin winioctl.h)
+        // Obtener tamaño de la unidad
         GET_LENGTH_INFORMATION tam_unidad;
         DWORD bytes_retorno;
 
+        // 
         DeviceIoControl(
             manejador_unidad, // Handle del disco
             IOCTL_DISK_GET_LENGTH_INFO, // Código de control

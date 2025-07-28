@@ -47,15 +47,17 @@ namespace DriveFormatter
 
         public:
             // FUNCIONES A USAR EN CPP
-            void leer_bytes_unidad();
-            void actualizar_caja_texto(uint64_t posicion_referencia);
-            void actualizar_barra_progreso(uint64_t pos_val);
-            void formatear_unidad();
-            void posicion_unidad_vscrollbar();
-            void datos_unidad_actual();
-            void actualizar_combobox();
-            void directorios_unidades();
-            void cambiar_unidad();
+            void leer_bytes_unidad(); // 
+            void actualizar_caja_texto(uint64_t posicion_referencia); // 
+            void actualizar_barra_progreso(uint64_t pos_val); // 
+            void formatear_unidad(); // 
+            void posicion_unidad_vscrollbar(); // 
+            void datos_unidad_actual(); // 
+            void actualizar_combobox(); // 
+            void directorios_unidades(); // 
+            void cambiar_unidad(); // 
+            void habilitar_gui(); // 
+            void hilo_formateo(); // 
 
         private:
             System::Windows::Forms::Label^ label1; // Etiqueta que indica "Select Device:"
@@ -65,6 +67,9 @@ namespace DriveFormatter
             System::Windows::Forms::TextBox^ textBox1; // Caja de texto para mostrar los datos en formato hexadecimal
             System::Windows::Forms::VScrollBar^ vScrollBar1; // Scrollbar vertical para navegar por sectores
             System::ComponentModel::Container^ componentes_val; // Contenedor de componentes del formulario
+            
+            // 
+            System::Threading::Thread^ hilo_secundario;
 
             // 
             #pragma region Windows Form Designer generated code
