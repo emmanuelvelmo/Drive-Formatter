@@ -218,8 +218,7 @@ namespace DriveFormatter
             OPEN_EXISTING, // Abrir solo si existe
             FILE_FLAG_NO_BUFFERING | // Sin buffering del sistema
             FILE_FLAG_WRITE_THROUGH | // Escritura directa al hardware
-            FILE_FLAG_SEQUENTIAL_SCAN | // Acceso secuencial optimizado
-            FILE_FLAG_OVERLAPPED, // Habilitar I/O asíncrono
+            FILE_FLAG_SEQUENTIAL_SCAN, // Acceso secuencial optimizado
             nullptr // Sin plantilla de archivo
         );
 

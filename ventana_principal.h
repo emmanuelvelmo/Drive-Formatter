@@ -115,10 +115,8 @@ namespace DriveFormatter
                 // 
                 this->progressBar1->Location = System::Drawing::Point(15, 392);
                 this->progressBar1->Name = L"progressBar1";
-                this->progressBar1->Size = System::Drawing::Size(312, 23);
+                this->progressBar1->Size = System::Drawing::Size(312, 20);
                 this->progressBar1->TabIndex = 3;
-                this->progressBar1->Minimum = 0; // Valor mínimo (0%)
-                this->progressBar1->Maximum = 100; // Valor máximo (100%)
                 // 
                 // textBox1
                 // 
@@ -137,14 +135,12 @@ namespace DriveFormatter
                 this->vScrollBar1->Name = L"vScrollBar1";
                 this->vScrollBar1->Size = System::Drawing::Size(17, 318);
                 this->vScrollBar1->TabIndex = 5;
-                this->vScrollBar1->Minimum = 0; // Valor mínimo (0%)
-                this->vScrollBar1->Maximum = 100; // Valor máximo (100%)
                 // 
                 // ventana_principal
                 // 
                 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
                 this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-                this->ClientSize = System::Drawing::Size(341, 432);
+                this->ClientSize = System::Drawing::Size(341, 428);
                 this->Controls->Add(this->vScrollBar1);
                 this->Controls->Add(this->textBox1);
                 this->Controls->Add(this->progressBar1);
@@ -155,6 +151,7 @@ namespace DriveFormatter
                 this->Text = L"Drive Formatter";
                 this->ResumeLayout(false);
                 this->PerformLayout();
+
             }
             // 
             #pragma endregion
