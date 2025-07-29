@@ -8,6 +8,7 @@ DWORD bytes_por_sector = 512; // Tamaño de sector típico
 DWORD sectores_por_cluster = 0; // Sectores por cluster
 DWORD bytes_por_cluster = 0; // Bytes por cluster (calculado)
 LARGE_INTEGER tamano_unidad = { 0 }; // Tamaño total dla unidad en bytes
+uint64_t tamano_segmento = 0;
 
 // Buffers y datos de lectura
 void* buffer_lectura = _aligned_malloc(512, 512); // Buffer alineado para 512 bytes (tamaño de sector)
@@ -15,6 +16,7 @@ DWORD tamano_buffer = 4096; // Tamaño del buffer de lectura
 DWORD bytes_leidos = 0; // Bytes leídos en la última operación
 uint64_t tamano_unidad_actual = 0; // 
 unsigned int cantidad_sectores = 0; // 
+std::atomic<uint64_t> suma_bytes{ 0 }; // 
 
 // Control de interfaz y estado
 TCHAR unidad_actual[MAX_PATH] = L"\\\\.\\C:"; // Ruta al disco C:

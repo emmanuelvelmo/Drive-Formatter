@@ -4,9 +4,6 @@
 #include <vector> // 
 #include <cmath> // 
 #include <thread> //
-
-
-
 #include <malloc.h> //
 #include <windows.h> // 
 #include "ventana_principal.h" // 
@@ -81,6 +78,9 @@ namespace DriveFormatter
     // 
     void ventana_principal::habilitar_gui()
     {
+        // Reiniciar contador de sobrescritura
+        suma_bytes = 0;
+
         // Reiniciar barra de progreso a cero
         progressBar1->Value = 0;
 
@@ -101,16 +101,20 @@ namespace DriveFormatter
     }
 
     // 
-    void ventana_principal::sobrescribir_segmentos()
+    void ventana_principal::sobrescribir_segmentos(uint64_t posicion_inicio, uint64_t posicion_fin)
     {
-
-
-
-
-
-
-
-
+        // Abrir la unidad física
+        HANDLE hilo_unidad = CreateFileW(
+            unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
+            GENERIC_READ | GENERIC_WRITE, // Permisos de lectura y escritura
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, // Compartir acceso
+            nullptr, // Sin atributos de seguridad
+            OPEN_EXISTING, // Abrir solo si existe
+            FILE_FLAG_NO_BUFFERING | // Sin buffering del sistema
+            FILE_FLAG_WRITE_THROUGH | // Escritura directa al hardware
+            FILE_FLAG_SEQUENTIAL_SCAN, // Acceso secuencial optimizado
+            nullptr // Sin plantilla de archivo
+        );
 
         // Definir tamaño de bloque (múltiplo de 512 bytes)
         const DWORD tamano_bloque = 64 * 1024; // Bloques de 64KB
@@ -122,18 +126,18 @@ namespace DriveFormatter
         memset(buffer_ceros, 0, tamano_bloque);
 
         // 
-        LARGE_INTEGER pos_val = { 0 }; // 
+        LARGE_INTEGER pos_val = { posicion_inicio };
 
         // Reemplazar todos los bytes en unidad por 0x00
-        while (pos_val.QuadPart < tamano_unidad_actual)
+        while (pos_val.QuadPart < posicion_fin)
         {
             // Calcular cuántos bytes escribir en esta iteración
-            uint64_t bytes_restantes = tamano_unidad_actual - pos_val.QuadPart;
+            uint64_t bytes_restantes = posicion_fin - pos_val.QuadPart;
             DWORD bytes_a_escribir = static_cast<DWORD>(min(static_cast<uint64_t>(tamano_bloque), bytes_restantes));
 
             // Posicionar puntero
             SetFilePointerEx(
-                manejador_unidad, // Manejador del archivo o disco
+                hilo_unidad, // Manejador del archivo o disco
                 pos_val, // Desplazamiento (offset) en bytes
                 nullptr, // Devuelve la nueva posición (puede ser nullptr)
                 FILE_BEGIN // Cómo interpretar el offset (inicio, actual, final)
@@ -143,7 +147,7 @@ namespace DriveFormatter
 
             // Escribir bloque de ceros
             WriteFile(
-                manejador_unidad, // 
+                hilo_unidad, // 
                 buffer_ceros, // 
                 bytes_a_escribir, // 
                 &bytes_escritos, // 
@@ -153,10 +157,13 @@ namespace DriveFormatter
             // Avanzar al siguiente bloque
             pos_val.QuadPart += bytes_escritos;
 
+            // Sumar a variable global (desde todos los hilos, proceso atómico)
+            suma_bytes += bytes_escritos;
+
             // Actualizar barra de progreso cada 1MB (polling)
-            if (pos_val.QuadPart % (1024 * 1024) == 0)
+            if (suma_bytes % (1024 * 1024) == 0)
             {
-                this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), static_cast<uint64_t>(pos_val.QuadPart)); // 
+                this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), static_cast<uint64_t>(suma_bytes)); // 
             }
         }
 
@@ -171,10 +178,14 @@ namespace DriveFormatter
         unsigned short num_hilos = std::thread::hardware_concurrency();
 
         // Tamaño de cada segmento de la unidad en relación al número de hilos disponibles
-        uint64_t tamano_segmento = tamano_unidad_actual / num_hilos;
+        tamano_segmento = tamano_unidad_actual / num_hilos;
 
-        // Sobrescribir cada segmento en un hilo dedicado (sobrescritura en paralelo)
-        sobrescribir_segmentos();
+        // Asignar valores de inicio distintos a cada hilo de operación
+        for (unsigned short iter_seg = 0 ; iter_seg < num_hilos; iter_seg++)
+        {
+            // Sobrescribir cada segmento en hilos dedicados (sobrescritura en paralelo)
+            sobrescribir_segmentos(tamano_segmento * iter_seg, tamano_segmento * (iter_seg + 1)); // Parametros para posición de inicio y número de segmento
+        }
 
 
 
@@ -238,7 +249,7 @@ namespace DriveFormatter
             manejador_unidad = INVALID_HANDLE_VALUE; // 
         }
 
-        // Abrir la unidad física en modo lectura
+        // Abrir la unidad física
         manejador_unidad = CreateFileW(
             unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
             GENERIC_READ | GENERIC_WRITE, // Permisos de lectura y escritura
