@@ -1,5 +1,5 @@
 #include <tchar.h> // Para manejar caracteres TCHAR (compatibilidad Unicode/ANSI)
-#include <stdio.h> // Para funciones de entrada/salida est醤dar (printf)
+#include <stdio.h> // Para funciones de entrada/salida est谩ndar (printf)
 #include <iomanip> // 
 #include <vector> // 
 #include <cmath> // 
@@ -12,7 +12,7 @@
 namespace DriveFormatter
 {
     // FUNCIONES
-    // Funci髇 para obtener 384 bytes o menos desde la unidad (seg鷑 la posici髇 del scrollbar vertical)
+    // Funci贸n para obtener 384 bytes o menos desde la unidad (seg煤n la posici贸n del scrollbar vertical)
     void ventana_principal::leer_bytes_unidad()
     {
         // 
@@ -20,20 +20,20 @@ namespace DriveFormatter
 
         pos_val.QuadPart = posicion_unidad; // 
 
-        // Posici髇 inicial de la unidad a leer
+        // Posici贸n inicial de la unidad a leer
         SetFilePointerEx(manejador_unidad, // Manejador del archivo o disco
             pos_val, // Desplazamiento (offset) en bytes
-            nullptr, // Devuelve la nueva posici髇 (puede ser nullptr)
-            FILE_BEGIN // C髆o interpretar el offset (inicio, actual, final)
+            nullptr, // Devuelve la nueva posici贸n (puede ser nullptr)
+            FILE_BEGIN // C贸mo interpretar el offset (inicio, actual, final)
         );
 
         // Realizar la lectura
         if (!ReadFile(
             manejador_unidad, // El identificador de la unidad abierta con CreateFile()
-            buffer_lectura, // Puntero al buffer donde se guardar醤 los datos le韉os
-            512, // N鷐ero de bytes a leer (debe ser m鷏tiplo del tama駉 de sector)
-            &bytes_leidos, // Variable global que almacena cu醤tos bytes se leyeron realmente
-            NULL // NULL para operaci髇 s韓crona (si no, usar estructura OVERLAPPED para I/O as韓crono)
+            buffer_lectura, // Puntero al buffer donde se guardar谩n los datos le铆dos
+            512, // N煤mero de bytes a leer (debe ser m煤ltiplo del tama帽o de sector)
+            &bytes_leidos, // Variable global que almacena cu谩ntos bytes se leyeron realmente
+            NULL // NULL para operaci贸n s铆ncrona (si no, usar estructura OVERLAPPED para I/O as铆ncrono)
         ))
         {
             // Si ReadFile falla, llenamos el buffer con ceros
@@ -41,10 +41,10 @@ namespace DriveFormatter
         }
     }
 
-    // Funci髇 para mostrar 384 bytes en caja de texto
+    // Funci贸n para mostrar 384 bytes en caja de texto
     void ventana_principal::actualizar_caja_texto(uint64_t posicion_referencia)
     {
-        // Establecer la posici髇 actual de lectura
+        // Establecer la posici贸n actual de lectura
         posicion_unidad = posicion_referencia;
 
         // Obtener 384 bytes o menos desde la unidad (rellenar con ceros para asegurar 2 cifras)
@@ -65,7 +65,7 @@ namespace DriveFormatter
         textBox1->Text = texto_hex;
     }
 
-    // Funci髇 para 
+    // Funci贸n para 
     void ventana_principal::actualizar_barra_progreso(uint64_t pos_val)
     {
         // Calcular progreso actual
@@ -103,7 +103,7 @@ namespace DriveFormatter
     // 
     void ventana_principal::sobrescribir_segmentos(uint64_t posicion_inicio, uint64_t posicion_fin)
     {
-        // Abrir la unidad f韘ica
+        // Abrir la unidad f铆sica
         HANDLE hilo_unidad = CreateFileW(
             unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
             GENERIC_READ | GENERIC_WRITE, // Permisos de lectura y escritura
@@ -116,7 +116,7 @@ namespace DriveFormatter
             nullptr // Sin plantilla de archivo
         );
 
-        // Definir tama駉 de bloque (m鷏tiplo de 512 bytes)
+        // Definir tama帽o de bloque (m煤ltiplo de 512 bytes)
         const DWORD tamano_bloque = 64 * 1024; // Bloques de 64KB
 
         // Crear buffer de ceros alineado
@@ -130,10 +130,10 @@ namespace DriveFormatter
         {
             posicion_fin = tamano_unidad_actual; // Ajustar al final
 
-            // Hacer el segmento m鷏tiplo de 512 (ajustar inicio)
+            // Hacer el segmento m煤ltiplo de 512 (ajustar inicio)
             if (fmod(posicion_inicio, 512.0) > 0.0)
             {
-                posicion_inicio -= fmod(posicion_inicio, 512.0); // Retroceder ligeramente los bytes necesarios para volverlo m鷏tiplo de 512
+                posicion_inicio -= fmod(posicion_inicio, 512.0); // Retroceder ligeramente los bytes necesarios para volverlo m煤ltiplo de 512
             }
         }
 
@@ -143,7 +143,7 @@ namespace DriveFormatter
         // Reemplazar todos los bytes en unidad por 0x00
         while (pos_val.QuadPart < posicion_fin)
         {
-            // Calcular cu醤tos bytes escribir en esta iteraci髇
+            // Calcular cu谩ntos bytes escribir en esta iteraci贸n
             uint64_t bytes_restantes = posicion_fin - pos_val.QuadPart;
 
             // 
@@ -153,8 +153,8 @@ namespace DriveFormatter
             SetFilePointerEx(
                 hilo_unidad, // Manejador del archivo o disco
                 pos_val, // Desplazamiento (offset) en bytes
-                nullptr, // Devuelve la nueva posici髇 (puede ser nullptr)
-                FILE_BEGIN // C髆o interpretar el offset (inicio, actual, final)
+                nullptr, // Devuelve la nueva posici贸n (puede ser nullptr)
+                FILE_BEGIN // C贸mo interpretar el offset (inicio, actual, final)
             );
 
             DWORD bytes_escritos; // 
@@ -171,7 +171,7 @@ namespace DriveFormatter
             // Avanzar al siguiente bloque
             pos_val.QuadPart += bytes_escritos;
 
-            // Sumar a variable global (desde todos los hilos, proceso at髆ico)
+            // Sumar a variable global (desde todos los hilos, proceso at贸mico)
             suma_bytes += bytes_escritos;
 
             // Actualizar barra de progreso cada 1MB (polling)
@@ -191,31 +191,30 @@ namespace DriveFormatter
     // 
     void ventana_principal::hilo_formateo()
     {
-        // Detectar n鷐ero de hilos disponibles
-        //unsigned short num_hilos = std::thread::hardware_concurrency();
-        unsigned short num_hilos = 60;
-
-        // Tama駉 de cada segmento de la unidad en relaci髇 al n鷐ero de hilos disponibles
+        // Detectar n煤mero de hilos disponibles
+        unsigned short num_hilos = std::thread::hardware_concurrency();
+        
+        // Tama帽o de cada segmento de la unidad en relaci贸n al n煤mero de hilos disponibles
         float tamano_segmento_float = tamano_unidad_actual / num_hilos;
 
-        // Ajustar tama駉 de segmento a m鷏tiplos de 512
+        // Ajustar tama帽o de segmento a m煤ltiplos de 512
         if (fmod(tamano_segmento_float, 512.0) > 0.0)
         {
             tamano_segmento = (unsigned int(tamano_segmento_float / 512) + 1) * 512; // Ligeramente mayor ajustado a 512
         }
         else
         {
-            tamano_segmento = tamano_segmento_float; // El mismo tama駉
+            tamano_segmento = tamano_segmento_float; // El mismo tama帽o
         }
 
         // Vector para almacenar los hilos
         std::vector<std::thread> vector_hilos;
 
-        // Asignar valores de inicio y fin distintos a cada hilo de operaci髇
+        // Asignar valores de inicio y fin distintos a cada hilo de operaci贸n
         for (unsigned short iter_seg = 0 ; iter_seg < num_hilos; iter_seg++)
         {
             // Sobrescribir cada segmento en orden secuencial (considerar silenciar)
-            sobrescribir_segmentos(tamano_segmento * iter_seg, tamano_segmento * (iter_seg + 1)); // Parametros para posici髇 de inicio y n鷐ero de segmento
+            sobrescribir_segmentos(tamano_segmento * iter_seg, tamano_segmento * (iter_seg + 1)); // Parametros para posici贸n de inicio y n煤mero de segmento
             
             // Sobrescribir cada segmento en hilos dedicados (sobrescritura en paralelo)
             //vector_hilos.emplace_back(std::thread(&ventana_principal::sobrescribir_segmentos, this, tamano_segmento * iter_seg, tamano_segmento * (iter_seg + 1)));
@@ -238,14 +237,14 @@ namespace DriveFormatter
         // Asegurar que la barra llegue al 100%
         this->Invoke(gcnew System::Action<uint64_t>(this, &ventana_principal::actualizar_barra_progreso), tamano_unidad_actual);
 
-        // Mostrar mensaje de finalizaci髇
+        // Mostrar mensaje de finalizaci贸n
         System::Windows::Forms::MessageBox::Show("Operation completed", "Message Box", System::Windows::Forms::MessageBoxButtons::OK, System::Windows::Forms::MessageBoxIcon::Information);
 
         // Habilitar controles
         this->Invoke(gcnew System::Action(this, &ventana_principal::habilitar_gui));
     }
 
-    // Funci髇 para formatear unidad completa
+    // Funci贸n para formatear unidad completa
     void ventana_principal::formatear_unidad()
     {
         // Mostrar mensaje de advertencia
@@ -264,20 +263,20 @@ namespace DriveFormatter
         }
     }
 
-    // Funci髇 para calcular posici髇 en unidad a partir del handler de scrollbar vertical
+    // Funci贸n para calcular posici贸n en unidad a partir del handler de scrollbar vertical
     void ventana_principal::posicion_unidad_vscrollbar()
     {
-        // Capturar posici髇 de handler
+        // Capturar posici贸n de handler
         proporcion_scrollbar = static_cast<float>(vScrollBar1->Value) / 100.0f;
 
-        // Calcular byte en la unidad (sector seg鷑 posici髇 del scrollbar vertical)
+        // Calcular byte en la unidad (sector seg煤n posici贸n del scrollbar vertical)
         uint64_t posicion_calculada = round(proporcion_scrollbar * cantidad_sectores) * 512;
 
         // Actualizar vista hexadecimal con la unidad actual seleccionado
         actualizar_caja_texto(posicion_calculada);
     }
 
-    // Funci髇 para registrar datos de la unidad seleccionada (ej. tama駉 en bytes)
+    // Funci贸n para registrar datos de la unidad seleccionada (ej. tama帽o en bytes)
     void ventana_principal::datos_unidad_actual()
     {
         // Cerrar manejador si estaba abierto previamente
@@ -288,7 +287,7 @@ namespace DriveFormatter
             manejador_unidad = INVALID_HANDLE_VALUE; // 
         }
 
-        // Abrir la unidad f韘ica
+        // Abrir la unidad f铆sica
         manejador_unidad = CreateFileW(
             unidad_actual, // Ruta al dispositivo (ej. "\\\\.\\C:")
             GENERIC_READ | GENERIC_WRITE, // Permisos de lectura y escritura
@@ -301,14 +300,14 @@ namespace DriveFormatter
             nullptr // Sin plantilla de archivo
         );
 
-        // Obtener tama駉 de la unidad
+        // Obtener tama帽o de la unidad
         GET_LENGTH_INFORMATION tam_unidad;
         DWORD bytes_retorno;
 
         // 
         DeviceIoControl(
             manejador_unidad, // Handle del disco
-            IOCTL_DISK_GET_LENGTH_INFO, // C骴igo de control
+            IOCTL_DISK_GET_LENGTH_INFO, // C贸digo de control
             NULL, // 
             0, // 
             &tam_unidad, sizeof(tam_unidad), // Buffer de salida
@@ -316,9 +315,9 @@ namespace DriveFormatter
             NULL // No overlapped I/O
         );
 
-        tamano_unidad_actual = tam_unidad.Length.QuadPart; // Tama駉 real en bytes
+        tamano_unidad_actual = tam_unidad.Length.QuadPart; // Tama帽o real en bytes
 
-        // Calcular el n鷐ero de sectores en la unidad
+        // Calcular el n煤mero de sectores en la unidad
         cantidad_sectores = round(tamano_unidad_actual / 512);
     }
 
@@ -328,7 +327,7 @@ namespace DriveFormatter
         // Limpiar contenido previo del combobox
         comboBox1->Items->Clear();
 
-        // Recorremos s髄o las unidades existentes
+        // Recorremos s贸lo las unidades existentes
         for (const auto& unidad : lista_unidades)
         {
             // Formatear a "X:\" usando el dato del vector
@@ -340,17 +339,17 @@ namespace DriveFormatter
             comboBox1->Items->Add(gcnew System::String(display));
         }
 
-        // Auto-selecci髇 si hay elementos
+        // Auto-selecci贸n si hay elementos
         comboBox1->SelectedIndex = 0;
 
-        // Obtener tama駉 de bytes de unidad
+        // Obtener tama帽o de bytes de unidad
         datos_unidad_actual();
 
         // Actualizar vista hexadecimal con la unidad actual seleccionado
         actualizar_caja_texto(0);
     }
 
-    // Funci髇 para detectar y registrar unidades disponibles
+    // Funci贸n para detectar y registrar unidades disponibles
     void ventana_principal::directorios_unidades()
     {
         // Reiniciar a sector 0
@@ -367,7 +366,7 @@ namespace DriveFormatter
         {
             if (drives & (1 << (letter - 'A')))
             {
-                // A馻dir al vector din醡ico
+                // A帽adir al vector din谩mico
                 wchar_t unidad[10]; // 
 
                 swprintf(unidad, 10, L"\\\\.\\%c:", letter); // 
@@ -380,7 +379,7 @@ namespace DriveFormatter
         actualizar_combobox();
     }
 
-    // Funci髇 para 
+    // Funci贸n para 
     void ventana_principal::cambiar_unidad()
     {
         // Obtener la ruta completa de la unidad seleccionada desde lista_unidades
@@ -392,7 +391,7 @@ namespace DriveFormatter
         // Colocar handler al inicio
         vScrollBar1->Value = 0;
 
-        // Obtener tama駉 de bytes de unidad
+        // Obtener tama帽o de bytes de unidad
         datos_unidad_actual();
 
         // Actualizar vista hexadecimal
