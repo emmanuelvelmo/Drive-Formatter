@@ -1,20 +1,23 @@
-#pragma once
+#pragma once // 
 #include <cmath> // 
+#using <System.dll> // 
+#using <System.Windows.Forms.dll> // 
 #include <windows.h> // Para tipos y funciones de WinAPI
 
+// 
 namespace DriveFormatter
 {
-    // Clase del formulario principal de la aplicaci髇
+    // Clase del formulario principal de la aplicaci贸n
     public ref class ventana_principal : public System::Windows::Forms::Form
     {
         public:
             // CONSTRUCTOR
             ventana_principal(void)
             {
-                // Funci髇 para iniciar componentes de la GUI
+                // Funci贸n para iniciar componentes de la GUI
                 InitializeComponent();
 
-                // Deshabilitar redimensionamiento y bot髇 de maximizar
+                // Deshabilitar redimensionamiento y bot贸n de maximizar
                 this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
                 this->MaximizeBox = false;
 
@@ -25,7 +28,7 @@ namespace DriveFormatter
                 this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &ventana_principal::comboBox1_SelectedIndexChanged);
                 this->vScrollBar1->Scroll += gcnew System::Windows::Forms::ScrollEventHandler(this, &ventana_principal::OnVScrollMoved);
 
-                // L覩ICA DEL PROGRAMA AL INICIAR
+                // L脫GICA DEL PROGRAMA AL INICIAR
                 // Obtener directorios de los unidades montadas al iniciar programa
                 directorios_unidades();
             }
@@ -59,22 +62,25 @@ namespace DriveFormatter
             void habilitar_gui(); // 
             void hilo_formateo(); // 
             void sobrescribir_segmentos(uint64_t posicion_inicio, uint64_t posicion_fin); // 
+            static void hilo_sobrescribir(System::Object^ datos); // 
 
         private:
+            // 
             System::Windows::Forms::Label^ label1; // Etiqueta que indica "Select Device:"
             System::Windows::Forms::ComboBox^ comboBox1; // ComboBox para seleccionar unidad de disco
-            System::Windows::Forms::Button^ button1; // Bot髇 para iniciar el formateo
+            System::Windows::Forms::Button^ button1; // Bot贸n para iniciar el formateo
             System::Windows::Forms::ProgressBar^ progressBar1; // Barra que muestra progreso del formateo
             System::Windows::Forms::TextBox^ textBox1; // Caja de texto para mostrar los datos en formato hexadecimal
             System::Windows::Forms::VScrollBar^ vScrollBar1; // Scrollbar vertical para navegar por sectores
             System::ComponentModel::Container^ componentes_val; // Contenedor de componentes del formulario
-            
+
             // 
             System::Threading::Thread^ hilo_secundario;
+            System::Collections::Generic::List<System::Threading::Thread^>^ lista_hilos;
 
             // 
             #pragma region Windows Form Designer generated code
-            // M閠odo generado autom醫icamente para inicializar los componentes del formulario
+            // M茅todo generado autom谩ticamente para inicializar los componentes del formulario
             void InitializeComponent(void)
             {
                 this->label1 = (gcnew System::Windows::Forms::Label());
@@ -152,38 +158,54 @@ namespace DriveFormatter
                 this->Text = L"Drive Formatter";
                 this->ResumeLayout(false);
                 this->PerformLayout();
-
             }
             // 
             #pragma endregion
 
-            // ATAJOS Y ACCIONES
-            // Recargar lista de unidades con Ctrl+R
-            private:
-                System::Void ventana_principal_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
+        // ATAJOS Y ACCIONES
+        // Recargar lista de unidades con Ctrl+R
+        private:
+            System::Void ventana_principal_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
+            {
+                if (e->Control && e->KeyCode == System::Windows::Forms::Keys::R)
                 {
-                    if (e->Control && e->KeyCode == System::Windows::Forms::Keys::R)
-                    {
-                        directorios_unidades();
-                    }
+                    directorios_unidades();
                 }
+            }
 
-                // Ejecutar formateo de la unidad seleccionada
-                System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
-                {
-                    formatear_unidad();
-                }
+            // Ejecutar formateo de la unidad seleccionada
+            System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
+            {
+                formatear_unidad();
+            }
 
-                // Cambiar unidad mostrada al cambiar selecci髇 en el ComboBox
-                System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
-                {
-                    cambiar_unidad();
-                }
+            // Cambiar unidad mostrada al cambiar selecci贸n en el ComboBox
+            System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+            {
+                cambiar_unidad();
+            }
 
-                // Manejador del evento Scroll
-                System::Void OnVScrollMoved(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e)
-                {
-                    posicion_unidad_vscrollbar();
-                }
+            // Manejador del evento Scroll
+            System::Void OnVScrollMoved(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e)
+            {
+                posicion_unidad_vscrollbar();
+            }
+    };
+
+    // Clase para pasar par谩metros a los hilos
+    ref class parametros_hilo
+    {
+        public:
+            DriveFormatter::ventana_principal^ instancia_ventana;
+            uint64_t inicio_val;
+            uint64_t fin_val;
+
+            // Constructor
+            parametros_hilo(DriveFormatter::ventana_principal^ inst_val, uint64_t ini_val, uint64_t fin_val)
+            {
+                instancia_ventana = inst_val;
+                inicio_val = ini_val;
+                fin_val = fin_val;
+            }
     };
 }
