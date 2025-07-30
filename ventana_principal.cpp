@@ -69,7 +69,7 @@ namespace DriveFormatter
     void ventana_principal::actualizar_barra_progreso(uint64_t pos_val)
     {
         // Calcular progreso actual
-        unsigned short progreso_val = round(100.0f * (static_cast<float>(pos_val) / tamano_unidad_actual));
+        unsigned short progreso_val = min(100, round(100.0f * (static_cast<float>(pos_val) / tamano_unidad_actual)));
 
         // Mostrar progreso en barra
         progressBar1->Value = progreso_val;
@@ -133,7 +133,11 @@ namespace DriveFormatter
             // Hacer el segmento múltiplo de 512 (ajustar inicio)
             if (fmod(posicion_fin - posicion_inicio, 512.0) > 0.0)
             {
-                posicion_inicio -= 512 - (fmod(posicion_fin - posicion_inicio, 512.0)); // Retroceder ligeramente los bytes necesarios para volverlo múltiplo de 512
+                // Retroceder ligeramente los bytes necesarios para volverlo múltiplo de 
+                posicion_inicio -= 512 - (fmod(posicion_fin - posicion_inicio, 512.0));
+
+                // Ajustar el progreso en la variable global
+                suma_bytes = posicion_inicio;
             }
         }
 
