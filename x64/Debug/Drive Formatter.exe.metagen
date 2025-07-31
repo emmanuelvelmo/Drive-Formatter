@@ -29,4 +29,6 @@ Class DriveFormatter.ventana_principal: AutoLayout, AnsiClass, Class, Public, Be
     cambiar_unidad(): PrivateScope, Public, HideBySig
     habilitar_gui(): PrivateScope, Public, HideBySig
     hilo_formateo(): PrivateScope, Public, HideBySig
+    liberar_memoria(): PrivateScope, Public, HideBySig
     sobrescribir_segmentos(UInt64, UInt64): PrivateScope, Public, HideBySig
+    funcion_intermediaria(Object): PrivateScope, Public, Static, HideBySig
