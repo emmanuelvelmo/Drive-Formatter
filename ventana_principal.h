@@ -1,9 +1,9 @@
-#pragma once // 
-#include <cmath> // 
-#using <System.dll> // 
+#pragma once // Evita inclusión múltiple del archivo de cabecera
+#include <cmath> // Biblioteca para funciones matemáticas
+#using <System.dll> // Referencia al ensamblado System.dll para funcionalidades .NET
 #include <windows.h> // Para tipos y funciones de WinAPI
 
-// 
+// Espacio de nombres para encapsular la aplicación DriveFormatter
 namespace DriveFormatter
 {
     // Clase del formulario principal de la aplicación
@@ -22,10 +22,10 @@ namespace DriveFormatter
 
                 // Activar manejo de eventos de teclado y botones
                 this->KeyPreview = true;
-                this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &ventana_principal::ventana_principal_KeyDown);
-                this->button1->Click += gcnew System::EventHandler(this, &ventana_principal::button1_Click);
-                this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &ventana_principal::comboBox1_SelectedIndexChanged);
-                this->vScrollBar1->Scroll += gcnew System::Windows::Forms::ScrollEventHandler(this, &ventana_principal::OnVScrollMoved);
+                this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &ventana_principal::control_r);
+                this->button1->Click += gcnew System::EventHandler(this, &ventana_principal::boton_formateo);
+                this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &ventana_principal::click_combobox);
+                this->vScrollBar1->Scroll += gcnew System::Windows::Forms::ScrollEventHandler(this, &ventana_principal::handler_vscrollbar);
 
                 // LÓGICA DEL PROGRAMA AL INICIAR
                 // Obtener directorios de los unidades montadas al iniciar programa
@@ -42,23 +42,23 @@ namespace DriveFormatter
 
         public:
             // FUNCIONES A USAR EN CPP
-            void leer_bytes_unidad(); // 
-            void actualizar_caja_texto(uint64_t posicion_referencia); // 
-            void actualizar_barra_progreso(uint64_t pos_val); // 
-            void formatear_unidad(); // 
-            void posicion_unidad_vscrollbar(); // 
-            void datos_unidad_actual(); // 
-            void actualizar_combobox(); // 
-            void directorios_unidades(); // 
-            void cambiar_unidad(); // 
-            void habilitar_gui(); // 
-            void hilo_formateo(); // 
-            void liberar_memoria(); // 
-            void sobrescribir_segmentos(uint64_t posicion_inicio, uint64_t posicion_fin); // 
-            static void funcion_intermediaria(System::Object^ datos_val); // 
+            void leer_bytes_unidad(); // Lee los bytes de la unidad seleccionada
+            void actualizar_caja_texto(uint64_t posicion_referencia); // Actualiza el contenido del TextBox con datos hexadecimales
+            void actualizar_barra_progreso(uint64_t pos_val); // Actualiza el porcentaje de la barra de progreso
+            void formatear_unidad(); // Inicia el proceso de formateo de la unidad seleccionada
+            void posicion_unidad_vscrollbar(); // Maneja la posición del scroll vertical para navegar por sectores
+            void datos_unidad_actual(); // Obtiene información de la unidad actualmente seleccionada
+            void actualizar_combobox(); // Refresca la lista de unidades en el ComboBox
+            void directorios_unidades(); // Enumera y carga las unidades disponibles en el sistema
+            void cambiar_unidad(); // Cambia la unidad mostrada cuando se selecciona otra en el ComboBox
+            void habilitar_gui(); // Habilita o deshabilita controles de la interfaz durante operaciones
+            void hilo_formateo(); // Función que se ejecuta en hilo separado para el formateo
+            void liberar_memoria(); // Libera recursos y memoria utilizada por la aplicación
+            void sobrescribir_segmentos(uint64_t posicion_inicio, uint64_t posicion_fin); // Sobrescribe segmentos específicos de la unidad
+            static void funcion_intermediaria(System::Object^ datos_val); // Función estática para crear hilos de trabajo
 
         private:
-            // 
+            // CONTROLES DE LA INTERFAZ GRÁFICA
             System::Windows::Forms::Label^ label1; // Etiqueta que indica "Select Device:"
             System::Windows::Forms::ComboBox^ comboBox1; // ComboBox para seleccionar unidad de disco
             System::Windows::Forms::Button^ button1; // Botón para iniciar el formateo
@@ -66,11 +66,11 @@ namespace DriveFormatter
             System::Windows::Forms::TextBox^ textBox1; // Caja de texto para mostrar los datos en formato hexadecimal
             System::Windows::Forms::VScrollBar^ vScrollBar1; // Scrollbar vertical para navegar por sectores
 
-            // 
-            System::Threading::Thread^ hilo_secundario;
-            System::Collections::Generic::List<System::Threading::Thread^>^ lista_hilos;
+            // VARIABLES PARA MANEJO DE HILOS
+            System::Threading::Thread^ hilo_secundario; // Hilo principal para operaciones de formateo
+            System::Collections::Generic::List<System::Threading::Thread^>^ lista_hilos; // Lista para gestionar múltiples hilos de trabajo
 
-            // 
+            // REGIÓN GENERADA AUTOMÁTICAMENTE POR EL DISEÑADOR DE FORMULARIOS
             #pragma region Windows Form Designer generated code
             // Método generado automáticamente para inicializar los componentes del formulario
             void InitializeComponent(void)
@@ -151,13 +151,12 @@ namespace DriveFormatter
                 this->ResumeLayout(false);
                 this->PerformLayout();
             }
-            // 
             #pragma endregion
 
         // ATAJOS Y ACCIONES
         // Recargar lista de unidades con Ctrl+R
         private:
-            System::Void ventana_principal_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
+            System::Void control_r(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e)
             {
                 if (e->Control && e->KeyCode == System::Windows::Forms::Keys::R)
                 {
@@ -166,41 +165,41 @@ namespace DriveFormatter
             }
 
             // Ejecutar formateo de la unidad seleccionada
-            System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
+            System::Void boton_formateo(System::Object^ sender, System::EventArgs^ e)
             {
                 formatear_unidad();
             }
 
             // Cambiar unidad mostrada al cambiar selección en el ComboBox
-            System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+            System::Void click_combobox(System::Object^ sender, System::EventArgs^ e)
             {
                 cambiar_unidad();
             }
 
             // Manejador del evento Scroll
-            System::Void OnVScrollMoved(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e)
+            System::Void handler_vscrollbar(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e)
             {
                 posicion_unidad_vscrollbar();
             }
-    };
+        };
 
-    // Clase para conectar método estático con no estático (método estático -> clase con referencia a clase principal (ésta) -> método no estático del cual generar hilos)
-    ref class clase_intermediaria
-    {
-        public:
-            // Referencia a clase con el método no estático
-            DriveFormatter::ventana_principal^ instancia_ventana;
+        // Clase para conectar método estático con no estático (método estático -> clase con referencia a clase principal (ésta) -> método no estático del cual generar hilos)
+        ref class clase_intermediaria
+        {
+            public:
+                // Referencia a clase con el método no estático
+                DriveFormatter::ventana_principal^ instancia_ventana;
 
-            // Variables no globales (evita condiciones de carrrera)
-            uint64_t inicio_val;
-            uint64_t fin_val;
+                // Variables no globales (evita condiciones de carrrera)
+                uint64_t inicio_val; // Posición de inicio para operaciones de sobrescritura
+                uint64_t fin_val; // Posición de fin para operaciones de sobrescritura
 
-            // Constructor de la clase (captura parámetros)
-            clase_intermediaria(DriveFormatter::ventana_principal^ inst_val, uint64_t ini_val, uint64_t fin_val)
-            {
-                instancia_ventana = inst_val;
-                inicio_val = ini_val;
-                fin_val = fin_val;
-            }
-    };
+                // Constructor de la clase (captura parámetros)
+                clase_intermediaria(DriveFormatter::ventana_principal^ inst_val, uint64_t ini_val, uint64_t fin_val)
+                {
+                    instancia_ventana = inst_val;
+                    inicio_val = ini_val;
+                    fin_val = fin_val;
+                }
+        };
 }

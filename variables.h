@@ -1,41 +1,22 @@
-#pragma once
-#include <tchar.h>
+#pragma once // Prevenir inclusión múltiple del archivo de cabecera
+#include <tchar.h> // Para soporte de caracteres anchos (Unicode/ANSI)
 
 // VARIABLES GLOBALES
-// Manejadores y control de unidad
-HANDLE manejador_unidad = INVALID_HANDLE_VALUE; // Manejador dla unidad físico seleccionado
-DWORD bytes_por_sector = 512; // Tamaño de sector típico
-DWORD sectores_por_cluster = 0; // Sectores por cluster
-DWORD bytes_por_cluster = 0; // Bytes por cluster (calculado)
-LARGE_INTEGER tamano_unidad = { 0 }; // Tamaño total dla unidad en bytes
-uint64_t tamano_segmento = 0;
+// Manejadores y control de dispositivo
+HANDLE manejador_unidad = INVALID_HANDLE_VALUE; // Manejador de la unidad física seleccionada
+TCHAR unidad_actual[MAX_PATH] = L"\\\\.\\C:"; // Ruta completa a la unidad de disco actual
+std::vector<std::wstring> lista_unidades; // Lista de todas las unidades disponibles en el sistema
 
-// Buffers y datos de lectura
-void* buffer_lectura = _aligned_malloc(512, 512); // Buffer alineado para 512 bytes (tamaño de sector)
-DWORD tamano_buffer = 4096; // Tamaño del buffer de lectura
-DWORD bytes_leidos = 0; // Bytes leídos en la última operación
-uint64_t tamano_unidad_actual = 0; // 
-unsigned int cantidad_sectores = 0; // 
-std::atomic<uint64_t> suma_bytes{ 0 }; // 
+// Propiedades del almacenamiento
+uint64_t tamano_unidad_actual = 0; // Tamaño total de la unidad en bytes
+unsigned int cantidad_sectores = 0; // Cantidad total de sectores de la unidad
+uint64_t posicion_unidad = 0; // Posición actual de lectura/escritura en la unidad
+uint64_t tamano_segmento = 0; // Tamaño de segmento para operaciones paralelas
 
-// Control de interfaz y estado
-TCHAR unidad_actual[MAX_PATH] = L"\\\\.\\C:"; // Ruta al disco C:
-TCHAR nombre_volumen[MAX_PATH] = { 0 }; // Nombre del volumen/etiqueta
-TCHAR sistema_archivos[MAX_PATH] = { 0 }; // Tipo de sistema de archivos
-DWORD numero_serial = 0; // Número serial dla unidad
-bool unidad_abierto = false; // Flag indicando si hay un unidad abierto
-float proporcion_scrollbar = 0;
+// Buffers y operaciones
+void* buffer_lectura = _aligned_malloc(512, 512); // Buffer alineado para operaciones de disco
+DWORD bytes_leidos = 0; // Cantidad de bytes leídos en la última operación
+std::atomic<uint64_t> suma_bytes{ 0 }; // Contador de bytes procesados durante formateo
 
-// Listado de unidades disponibles
-std::vector<std::wstring> lista_unidades; // Array fijo para todas las posibles unidades (A-Z) en formato "\\\\.\\X:"
-int unidades_detectados = 0; // Cantidad real de unidades encontrados
-
-// Parámetros de visualización
-uint64_t posicion_unidad = 0; // Offset actual en la unidad
-const int columnas_hex = 16; // Columnas para visualización hexadecimal
-const int filas_hex = 24; // Filas para visualización hexadecimal
-unsigned char buffer_bytes[columnas_hex * filas_hex] = ""; // 
-unsigned int posicion_handler = 0; // Posición del handler de scrollbar vertical
-
-// Variables para almacenamiento temporal
-TCHAR buffer_temporal[columnas_hex * filas_hex] = { 0 }; // Buffer para mensajes y conversiones
+// Interfaz de usuario
+float proporcion_scrollbar = 0; // Posición actual del scrollbar (valor normalizado)
